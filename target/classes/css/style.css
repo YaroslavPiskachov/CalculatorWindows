@@ -1,0 +1,326 @@
+/* BUTTONS */
+
+/*Digits and general operations*/
+.genButton {
+    -fx-background-color: #F2F2F2;
+    -fx-background-radius: 0;
+    -fx-font-size: 23;
+    -fx-font-family: Microsoft JhengHei UI bold;
+    -fx-cursor: default;
+}
+
+.genButton:hover {
+    -fx-background-color: #DADADA;
+}
+
+.genButton:pressed {
+    -fx-background-color: #C2C2C2;
+    -fx-font-size: 20px;
+}
+
+.genButton#calculateButton:hover{
+    -fx-background-color: #70b3e8;
+    -fx-background-image: url('../img/equal-hover.png');
+    -fx-background-repeat: no-repeat;
+    -fx-text-fill: transparent;
+    -fx-background-position: center;
+}
+
+.genButton#calculateButton:pressed{
+    -fx-background-image: url('../img/equal-pressed.png');
+    -fx-background-color: #a6d8ff;
+    -fx-background-repeat: no-repeat;
+    -fx-text-fill: transparent;
+    -fx-background-position: center;
+}
+
+
+.toolBarButton{
+    -fx-cursor: default;
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 0;
+    -fx-font-size: 20;
+}
+
+.toolBarButton:hover{
+    -fx-background-color: #DADADA;
+}
+
+.toolBarButton:pressed{
+    -fx-background-color: #C2C2C2;
+}
+
+
+#divideButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/divide.jpg');
+    -fx-background-color: #F2F2F2;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#divideButton:hover {
+    -fx-background-image: url('../img/divide-hover.jpg');
+    -fx-background-color: #DADADA;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#divideButton:pressed {
+    -fx-background-image: url('../img/divide-pressed.jpg');
+    -fx-background-color: #C2C2C2;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#multiplyButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/multiply.jpg');
+    -fx-background-position: center;
+    -fx-background-color: #F2F2F2;
+    -fx-background-repeat: no-repeat;
+}
+
+#multiplyButton:hover {
+    -fx-background-image: url('../img/multiply-hover.jpg');
+    -fx-background-color: #DADADA;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#multiplyButton:pressed {
+    -fx-background-image: url('../img/multiply-pressed.jpg');
+    -fx-background-color: #C2C2C2;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#PlusMinusButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/plus_minus.jpg');
+    -fx-background-position: center;
+    -fx-background-color: #F2F2F2;
+    -fx-background-repeat: no-repeat;
+}
+
+#PlusMinusButton:hover {
+    -fx-background-image: url('../img/plus_minus-hover.jpg');
+    -fx-background-color: #DADADA;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#PlusMinusButton:pressed {
+    -fx-background-image: url('../img/plus_minus-pressed.jpg');
+    -fx-background-color: #C2C2C2;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#backspaceButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/backspace.jpg');
+    -fx-background-position: center;
+    -fx-background-color: #F2F2F2;
+    -fx-background-repeat: no-repeat;
+}
+
+#backspaceButton:hover {
+    -fx-background-image: url('../img/backspace-hover.jpg');
+    -fx-background-color: #DADADA;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+#backspaceButton:pressed {
+    -fx-background-image: url('../img/backspace-pressed.jpg');
+    -fx-background-color: #C2C2C2;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+}
+
+/*Special operations*/
+#PercentButton {
+    -fx-cursor: default;
+    -fx-background-radius: 0;
+    -fx-background-image: url('../img/percent.jpg');
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-color: #F2F2F2;
+    -fx-border-width: 1px 0px 0px 0px;
+}
+
+#PercentButton:hover {
+    -fx-background-image: url('../img/percent-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+
+#PercentButton:pressed {
+    -fx-background-image: url('../img/percent-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+
+#SqrtButton {
+    -fx-cursor: default;
+    -fx-background-radius: 0;
+    -fx-background-image: url('../img/sqrt.jpg');
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-color: #F2F2F2;
+    -fx-border-width: 1px 0px 0px 0px;
+}
+
+#SqrtButton:hover {
+    -fx-background-image: url('../img/sqrt-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+#SqrtButton:pressed {
+    -fx-background-image: url('../img/sqrt-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+#SqrButton {
+    -fx-cursor: default;
+    -fx-background-radius: 0;
+    -fx-background-image: url('../img/sqr.jpg');
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-color: #F2F2F2;
+    -fx-border-width: 1px 0px 0px 0px;
+}
+
+#SqrButton:hover {
+    -fx-background-image: url('../img/sqr-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+#SqrButton:pressed {
+    -fx-background-radius: 0;
+    -fx-background-image: url('../img/sqr-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+#oneDividedButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/-1.jpg');
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-color: #F2F2F2;
+    -fx-border-width: 1px 0px 0px 0px;
+}
+
+#oneDividedButton:hover {
+    -fx-background-image: url('../img/-1-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+#oneDividedButton:pressed {
+
+    -fx-background-image: url('../img/-1-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+/*MemoryButtons*/
+.MButton {
+    -fx-cursor: default;
+    -fx-background-radius: 0;
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+.MButton#mListButton{
+    -fx-background-image: url('../img/mBut.jpg');
+}
+.MButton#mListButton:hover{
+    -fx-background-image: url('../img/mBut.jpg');
+}
+
+.MButton:hover {
+    -fx-background-color: #E6E6E6;
+}
+
+.MButton:pressed {
+    -fx-background-color: #CCCCCC;
+}
+
+
+/* ToolbarButtons */
+#MenuButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/menu.jpg');
+    -fx-background-radius: 0;
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+#MenuButton:hover {
+    -fx-background-image: url('../img/menu-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+#MenuButton:pressed {
+    -fx-background-image: url('../img/menu-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+
+#HistoryButton {
+    -fx-cursor: default;
+    -fx-background-image: url('../img/history.jpg');
+    -fx-background-radius: 0;
+    -fx-background-color: #FFFFFF;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+#HistoryButton:hover {
+    -fx-background-image: url('../img/history-hover.jpg');
+    -fx-background-color: #E6E6E6;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+
+}
+#HistoryButton:pressed {
+    -fx-background-image: url('../img/history-pressed.jpg');
+    -fx-background-color: #CCCCCC;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+
+/*OTHERS*/
+#AnchorPane {
+    -fx-background-color: #FFFFFF;
+}
+
+
+
