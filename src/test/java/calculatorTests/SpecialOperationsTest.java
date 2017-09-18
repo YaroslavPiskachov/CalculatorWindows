@@ -166,37 +166,37 @@ public class SpecialOperationsTest extends MyTestBox{
         combinationTestTemplate("9±,6 1/x","-0,1041666666666667","1/( -9,6 )");
         combinationTestTemplate("521,0 1/x","0,0019193857965451","1/( 521 )");
         combinationTestTemplate("359,3 1/x","0,0027831895352073","1/( 359,3 )");
-        combinationTestTemplate("633,0 1/x","0,0015797788309636","1/( 633 )");
+        combinationTestTemplate("633,0 1/x","0,0015797788309637","1/( 633 )");
         combinationTestTemplate("361,5 1/x","0,0027662517289073","1/( 361,5 )");
-        combinationTestTemplate("558,17 1/x","0,0017915688768654","1/( 558,17 )");
-        combinationTestTemplate("977,03 1/x","0,0010235100252806","1/( 977,03 )");
-        combinationTestTemplate("288,±71/x","-0,003463803255975","1/( -288,7 )");
+        combinationTestTemplate("558,17 1/x","0,0017915688768655","1/( 558,17 )");
+        combinationTestTemplate("977,03 1/x","0,0010235100252807","1/( 977,03 )");
+        combinationTestTemplate("288,±71/x","-0,0034638032559751","1/( -288,7 )");
         combinationTestTemplate("263,89± 1/x","-0,003789457728599","1/( -263,89 )");
         combinationTestTemplate("300,01±1/x","-0,0033332222259258","1/( -300,01 )");
-        combinationTestTemplate("496,26± 1/x","-0,002015072744126","1/( -496,26 )");
-        combinationTestTemplate("12312,3 1/x","0,0000812195934147","1/( 12312,3 )");
-        combinationTestTemplate("14078,41 1/x","0,0000710307485007","1/( 14078,41 )");
-        combinationTestTemplate("33041,0 1/x","0,0000302654278018","1/( 33041 )");
-        combinationTestTemplate("99853,0 1/x","0,0000100147216408","1/( 99853 )");
-        combinationTestTemplate("51681,16 1/x","0,0000193494108878","1/( 51681,16 )");
-        combinationTestTemplate("17,35 ± 1/x","-0,0576368876080691","1/( -17,35 )");
-        combinationTestTemplate("3466±2,3521/x","-0,0000288497445297","1/( -34662,352 )");
-        combinationTestTemplate("2919±7,8241/x","-0,0000342491276062","1/( -29197,824 )");
+        combinationTestTemplate("496,26± 1/x","-0,0020150727441261","1/( -496,26 )");
+        combinationTestTemplate("12312,3 1/x","8,121959341471537e-5","1/( 12312,3 )");
+        combinationTestTemplate("14078,41 1/x","7,103074850071848e-5","1/( 14078,41 )");
+        combinationTestTemplate("33041,0 1/x","3,026542780182198e-5","1/( 33041 )");
+        combinationTestTemplate("99853,0 1/x","1,001472164081199e-5","1/( 99853 )");
+        combinationTestTemplate("51681,16 1/x","1,934941088783611e-5","1/( 51681,16 )");
+        combinationTestTemplate("17,35 ± 1/x","-0,0576368876080692","1/( -17,35 )");
+        combinationTestTemplate("3466±2,3521/x","-2,884974452974224e-5","1/( -34662,352 )");
+        combinationTestTemplate("2919±7,8241/x","-3,424912760622161e-5","1/( -29197,824 )");
 
 
         //integer values
         combinationTestTemplate(" 842 1/x","0,001187648456057","1/( 842 )");
-        combinationTestTemplate(" 855 1/x","0,0011695906432748","1/( 855 )");
+        combinationTestTemplate(" 855 1/x","0,0011695906432749","1/( 855 )");
         combinationTestTemplate("992 1/x","0,001008064516129","1/( 992 )");
-        combinationTestTemplate("867± 1/x","-0,0011534025374855","1/( -867 )");
-        combinationTestTemplate("34±642 1/x","-0,0000288666936089","1/( -34642 )");
-        combinationTestTemplate(" 41±835 1/x","-0,0000239034301422","1/( -41835 )");
-        combinationTestTemplate("4±66471/x","-0,0000214376058481","1/( -46647 )");
-        combinationTestTemplate(" 24843 1/x","0,0000402527875055","1/( 24843 )");
-        combinationTestTemplate("88085 1/x","0,0000113526707157","1/( 88085 )");
-        combinationTestTemplate("8±3794 1/x","-0,0000119340286894","1/( -83794 )");
-        combinationTestTemplate("51515± 1/x","-0,0000194118217994","1/( -51515 )");
-        combinationTestTemplate("72082 ± 1/x","-0,0000138730889819","1/( -72082 )");
+        combinationTestTemplate("867± 1/x","-0,0011534025374856","1/( -867 )");
+        combinationTestTemplate("34±642 1/x","-2,886669360891403e-5","1/( -34642 )");
+        combinationTestTemplate(" 41±835 1/x","-2,390343014222541e-5","1/( -41835 )");
+        combinationTestTemplate("4±66471/x","-2,143760584817888e-5","1/( -46647 )");
+        combinationTestTemplate(" 24843 1/x","4,025278750553476e-5","1/( 24843 )");
+        combinationTestTemplate("88085 1/x","1,135267071578589e-5","1/( 88085 )");
+        combinationTestTemplate("8±3794 1/x","-1,193402868940497e-5","1/( -83794 )");
+        combinationTestTemplate("51515± 1/x","-1,941182179947588e-5","1/( -51515 )");
+        combinationTestTemplate("72082 ± 1/x","-1,387308898199273e-5","1/( -72082 )");
         combinationTestTemplate("120407969 1/x","8,305098145123601e-9","1/( 120407969 )");
         combinationTestTemplate("92767132 ± 1/x","-1,077968002718894e-8","1/( -92767132 )");
         combinationTestTemplate("20059845 ± 1/x","-4,985083384243497e-8","1/( -20059845 )");
@@ -249,9 +249,9 @@ public class SpecialOperationsTest extends MyTestBox{
     @Test
     public void combinationTest(){
         combinationTestTemplate( "1941317165 √ √","209,905647611963","√( √( 1941317165 ) )");
-        combinationTestTemplate( "1113642533 1/x √","0,0000299658840876","√( 1/( 1113642533 ) )");
-        combinationTestTemplate( "1374605492 1/x √","0,000026971864091","√( 1/( 1374605492 ) )");
-        combinationTestTemplate( "1485689250 1/x √","0,0000259439446742","√( 1/( 1485689250 ) )");
+        combinationTestTemplate( "1113642533 1/x √","2,996588408763799e-5","√( 1/( 1113642533 ) )");
+        combinationTestTemplate( "1374605492 1/x √","2,69718640910774e-5","√( 1/( 1374605492 ) )");
+        combinationTestTemplate( "1485689250 1/x √","2,594394467426634e-5","√( 1/( 1485689250 ) )");
         combinationTestTemplate( "16114±73845 1/x","-6,205499413488774e-10","1/( -1611473845 )");
         combinationTestTemplate( "1681947901 √ ± sqr","1 681 947 901","sqr( negate( √( 1681947901 ) ) )");
         combinationTestTemplate( "1156246513 sqr 1/x sqr","5,594976361205657e-37","sqr( 1/( sqr( 1156246513 ) ) )");
@@ -264,7 +264,7 @@ public class SpecialOperationsTest extends MyTestBox{
         combinationTestTemplate( "1364005784 1/x ± sqr" ,"5,374865192483768e-19","sqr( negate( 1/( 1364005784 ) ) )");
         combinationTestTemplate( "1126760686± sqr √ √ √ sqr","33 567,25615834574","sqr( √( √( √( sqr( -1126760686 ) ) ) ) )");
         combinationTestTemplate( "1434189007 1/x sqr √ sqr sqr 1/x ±","-4,230829825869764e+36","negate( 1/( sqr( sqr( √( sqr( 1/( 1434189007 ) ) ) ) ) ) )");
-        combinationTestTemplate( "2045599636 √ √ 1/x ± sqr √ ±","-0,0047021322590797","negate( √( sqr( negate( 1/( √( √( 2045599636 ) ) ) ) ) ) )");
+        combinationTestTemplate( "2045599636 √ √ 1/x ± sqr √ ±","-0,0047021322590798","negate( √( sqr( negate( 1/( √( √( 2045599636 ) ) ) ) ) ) )");
         combinationTestTemplate( "97686240±4 sqr sqr √ ± ± 1/x","1,047932257620771e-18","1/( negate( negate( √( sqr( sqr( -976862404 ) ) ) ) ) )");
         combinationTestTemplate( "197936665 √ sqr ± 1/x ± ±","-5,052121091360209e-9","negate( negate( 1/( negate( sqr( √( 197936665 ) ) ) ) ) )");
         combinationTestTemplate("9999999999999999 sqr sqr sqr sqr sqr sqr sqr sqr sqr ","9,999999999999488e+8191","sqr( sqr( sqr( sqr( sqr( sqr( sqr( sqr( sqr( 9999999999999999 ) ) ) ) ) ) ) ) )");

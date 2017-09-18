@@ -49,16 +49,16 @@ public class CalculateButtonTest extends MyTestBox {
 
     @Test
     public void severalPressingTestDivide() {
-        combinationTestTemplate("1 / 63 = =","0,000251952632905");
+        combinationTestTemplate("1 / 63 = =","2,519526329050139e-4");
         combinationTestTemplate("1,3 / 3,05 = =","0,1397473797366299");
         combinationTestTemplate("6 / 5,3 = = = = =","0,0014347356919028");
         combinationTestTemplate("41 / 0,47 = = =","394,9028635273494");
         combinationTestTemplate("14,4 / 0,36 = = = =","857,3388203017833");
-        combinationTestTemplate("0,05 / 5,6 = = = =","0,0000508414462723");
-        combinationTestTemplate("1 / 4,3 / 12 / 4 = = = = =","0,0000189256298449");
-        combinationTestTemplate("3,294 / 4,105 = = =","0,0476194209903064");
+        combinationTestTemplate("0,05 / 5,6 = = = =","5,084144627238651e-5");
+        combinationTestTemplate("1 / 4,3 / 12 / 4 = = = = =","1,892562984496124e-5");
+        combinationTestTemplate("3,294 / 4,105 = = =","0,0476194209903065");
         combinationTestTemplate("3,1411 / 0,8 = = = = = = =","14,97793197631836");
-        combinationTestTemplate("19,4 / 2,54 = = = = = = = = = = =","0,0006833305653157");
+        combinationTestTemplate("19,4 / 2,54 = = = = = = = = = = =","6,833305653157216e-4");
     }
 
 }

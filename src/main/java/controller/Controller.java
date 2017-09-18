@@ -16,7 +16,9 @@ import model.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -496,6 +498,7 @@ public class Controller {
      */
     @FXML
     public void backSpaceButton() throws DivisionByZeroException, OverflowException {
+        inputting = true;
         if (isValueFloat && currentValue.scale() == 0) {
             displayValue(currentValue);
         } else if (!replaceValue) {
@@ -516,6 +519,7 @@ public class Controller {
             displayValue(value);
             replaceValue = false;
         }
+        inputting = true;
     }
 
     /**
@@ -647,7 +651,6 @@ public class Controller {
                 result = calculator.executeOperation(specialOperation, currentValue);
             }
             displayValue(result);
-            //replaceValue = true;
         } catch (OverflowException | DivisionByZeroException | NegativeValueForSqrtException e) {
             printException(e);
         }
@@ -689,7 +692,7 @@ public class Controller {
      *
      * @param e exception with message will be displayed
      */
-    private void printException(Exception e){
+    private void printException(Exception e) {
         String toMainLabel;
         if (e instanceof DivisionByZeroException) {
             toMainLabel = divisionByZeroMsg;
@@ -704,7 +707,7 @@ public class Controller {
         String history = historyLabel.getText();
         try {
             clearAllButton();
-        }catch (OverflowException r){
+        } catch (OverflowException r) {
             r.printStackTrace();
         }
         mainLabel.setText(toMainLabel);
@@ -726,7 +729,7 @@ public class Controller {
 
         specialOperation = null;
         isOperationSpecial = false;
-        addToHistoryLabel(binaryOperation.operationSign);
+        addToHistoryLabel(" " + binaryOperation.operationSign + " ");
         if (!isDigitAddedLast) {
             this.binaryOperation = binaryOperation;
             return;
@@ -745,7 +748,6 @@ public class Controller {
         this.binaryOperation = binaryOperation;
         lastSpecialAddedToHistory = null;
         isDigitAddedLast = false;
-        //isValueFloat = false;
         isCalculateButtonLast = false;
     }
 
@@ -806,16 +808,21 @@ public class Controller {
         if (specialOperation == NEGATE) {
             String text = mainLabel.getText();
             toMainLabel = text.startsWith("-") ? text.substring(1) : "-" + text;
-        } else if (isValueFloat) {
+        } else if (isValueFloat && inputting) {
             toMainLabel = makeString(val);
-            if (inMainLabel.contains(FLOAT_POINT) && currentValue.scale() == 0 && val.equals(currentValue)) {
-                toMainLabel = toMainLabel.replace(FLOAT_POINT, "");
-                isValueFloat = false;
-            } else if (!toMainLabel.contains(FLOAT_POINT) && inputting) {
-                toMainLabel += FLOAT_POINT;
+
+            if (inMainLabel.contains(FLOAT_POINT)) {
+                if (currentValue.scale() == 0 && val.scale() == 0) {
+                    toMainLabel = inMainLabel.replace(FLOAT_POINT, "");
+                    isValueFloat = false;
+                } else if (currentValue.scale() == 1 && val.scale() == 0) {
+                    toMainLabel = inMainLabel.substring(0, inMainLabel.length() - 1);
+                }
+            } else {
+                toMainLabel = inMainLabel + FLOAT_POINT;
             }
         } else {
-            if (isIntegerNormal(val) && val.scale() != 0 ) {
+            if (isIntegerNormal(val) && val.scale() != 0) {
                 val = new BigDecimal(val.toBigInteger());
             }
             toMainLabel = makeString(val);
@@ -843,7 +850,7 @@ public class Controller {
         if ((currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 17) ||
                 !currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 16) {
             inputting = false;
-            return;                                                                     // number too long
+            return;                                     // number too long
         }
         setDisableButtons(false);
         if (mainLabel.getText().equals(overflowExceptionMsg)) {
@@ -877,7 +884,7 @@ public class Controller {
             if (new BigDecimal(digit).equals(BigDecimal.ZERO)) {
                 int newScale = newCurrentValue.scale() + 1;
 
-                newCurrentValue = newCurrentValue.setScale(newScale);
+                newCurrentValue = newCurrentValue.setScale(newScale, BigDecimal.ROUND_DOWN);
             } else {
                 if (isIntegerNormal(newCurrentValue) || newCurrentValue.compareTo(BigDecimal.ZERO) == 0) {
                     newDigit = newDigit.movePointLeft(1);
@@ -894,6 +901,13 @@ public class Controller {
         isDigitAddedLast = true;
     }
 
+    /**
+     * Function check is value has integer type
+     *
+     * @param bd value will be checked
+     *
+     * @return is it integer or not
+     */
     private boolean isIntegerNormal(BigDecimal bd) {
         return bd.signum() == 0 || bd.scale() <= 0 || bd.stripTrailingZeros().scale() <= 0;
     }
@@ -912,7 +926,7 @@ public class Controller {
                 if (history.charAt(history.length() - 1) == ')') {
                     history += str;
                 } else {
-                    history += makeString(currentValue).replace(" ", "") + str;
+                    history += makeString(currentValue).replace(BIG_NUMBER_SEPARATOR, "") + str;
                 }
                 lastSpecialAddedToHistory = null;
             }
@@ -1086,33 +1100,65 @@ public class Controller {
      * @return String which represents number for user
      */
     private String convertIntoExp(BigDecimal bigDecimal) {
-        if (bigDecimal.toPlainString().length() <= 18 && bigDecimal.compareTo(BigDecimal.ONE) == -1) {
-            return bigDecimal.toPlainString().replace(".", FLOAT_POINT);
-        }
-        String res = (bigDecimal.round(MathContext.DECIMAL64) + "")
-                .replace("E-", SYMBOL_EXP + "-")
-                .replace("E+", SYMBOL_EXP + "+")
-                .replace(".", FLOAT_POINT);
 
+        String exponentialSymbolSign = SYMBOL_EXP;
 
-        int indexOfExp = res.indexOf(SYMBOL_EXP);
-        String afterExp = res.substring(indexOfExp);
-        res = res.substring(0, indexOfExp);
-        if (res.length() > MAX_DIGITS_IN_NUMBER - 1) {
-            res = res.substring(0, MAX_DIGITS_IN_NUMBER) + res.substring(indexOfExp);
+        if (!(bigDecimal.compareTo(BigDecimal.ONE.negate()) == 1 && bigDecimal.compareTo(BigDecimal.ONE) == -1)) {
+            exponentialSymbolSign += "+";
         }
 
-        while (res.charAt(res.length() - 1) == '0') {
-            res = res.substring(0, res.length() - 1);
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
+        symbols.setExponentSeparator(exponentialSymbolSign);
+
+        DecimalFormat formatter = new DecimalFormat("0.######E0");
+        formatter.setRoundingMode(RoundingMode.HALF_UP);
+        formatter.setDecimalFormatSymbols(symbols);
+        formatter.setMaximumFractionDigits(MAX_DIGITS_IN_NUMBER - 2);
+        String result = formatter.format(bigDecimal);
+
+        if (!result.contains(",")) {
+            int expIndex = result.indexOf(SYMBOL_EXP);
+            result = result.substring(0, expIndex) + FLOAT_POINT + result.substring(expIndex);
         }
 
-        double val = Double.valueOf(res.replace(FLOAT_POINT, "."));
-        if (val == (int) val && !res.contains(FLOAT_POINT)) {
-            res = res + FLOAT_POINT;
-        }
-
-        return res + afterExp;
+        return result;
     }
+
+    /**
+     * Minimal value which can be displayed not in exponential system
+     */
+    private final BigDecimal MIN_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("0.0000000000000001");
+
+    /**
+     * Function counts digits in BigInteger value
+     * @param number value count of digits will be counted for
+     * @return count of digits in {@code number} value
+     */
+    private int getDigitCount(BigInteger number) {
+        number = number.abs();
+        double factor = Math.log(2) / Math.log(10);
+        int digitCount = (int) (factor * number.bitLength() + 1);
+        if (BigInteger.TEN.pow(digitCount - 1).compareTo(number) > 0) {
+            return digitCount - 1;
+        }
+        return digitCount;
+    }
+
+    /**
+     * Function counts zeros at the beginning of value
+     * @param number value for counting
+     * @return count of zeros
+     */
+    private static int zeroStartCounter(BigDecimal number) {
+        int zeroCount = 0;
+        while (number.toBigInteger().equals(BigInteger.ZERO) && number.compareTo(BigDecimal.ZERO) != 0) {
+            zeroCount++;
+            number = number.movePointRight(1);
+        }
+        return zeroCount;
+    }
+
 
     /**
      * Function for converting {@code BigDecimal} value to a {@code String} value for displaying to user
@@ -1122,62 +1168,39 @@ public class Controller {
      * @throws NullPointerException If param {@code val} is empty
      */
     public String makeString(BigDecimal val) throws ArithmeticException {
-        String result = null;
-        boolean isNegate = false;
-        if (val.compareTo(BigDecimal.ZERO) == -1) {
-            val = val.negate();
-            isNegate = true;
-        }
+        String result;
+        DecimalFormat formatter = new DecimalFormat();
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator(',');
+        symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
+        formatter.setDecimalFormatSymbols(symbols);
+        if (inputting && isValueFloat) {
+            String valStr = val.toPlainString();
 
-        if (val.compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) == 1
+            result = formatter.format(val.toBigInteger());
+            if (val.scale() != 0) {
+                result += FLOAT_POINT + valStr.substring(valStr.indexOf('.') + 1);
+            }
+
+        } else if ((val.compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) == 1
                 || val.compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM.negate()) == -1
-                || val.toString().contains("E")) {
+                || (val.compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) == -1 && val.compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM.negate()) == 1
+                && val.compareTo(BigDecimal.ZERO) != 0)
+                || val.stripTrailingZeros().precision() >= 12 && zeroStartCounter(val) >= 4)) {
             result = convertIntoExp(val);
-        }
+        } else {
 
-        val = val.round(MathContext.DECIMAL64);
-        StringBuilder numberStr = new StringBuilder(val.toPlainString()
-                .replace("E+", SYMBOL_EXP + "+")
-                .replace("E-", SYMBOL_EXP + "-")
-                .replace(".", FLOAT_POINT));
+            RoundingMode roundingMode = RoundingMode.HALF_UP;
+            int fractionDigits = MAX_DIGITS_IN_NUMBER - getDigitCount(val.toBigInteger()) - 1;
+            if (val.toBigInteger().equals(BigInteger.ZERO)) {
+                roundingMode = RoundingMode.HALF_UP;
 
-        String afterPoint = "";
-
-        int indexOfPoint = numberStr.indexOf(FLOAT_POINT);
-
-        if (indexOfPoint != -1 && result == null) {
-
-            afterPoint = numberStr.substring(indexOfPoint);
-            numberStr.delete(indexOfPoint, numberStr.length());
-
-            if (afterPoint.length() > MAX_DIGITS_IN_NUMBER) {
-                afterPoint = afterPoint.substring(0, MAX_DIGITS_IN_NUMBER);
             }
-        }
 
-        if (result == null) {
-            if (numberStr.toString().length() < 4) {
-                result = numberStr + afterPoint;
-            } else {
-                for (int i = numberStr.toString().length() - 4; i >= 0; i -= 3) {
-                    numberStr.insert(i + 1, BIG_NUMBER_SEPARATOR);
-                }
-                result = numberStr + afterPoint;
-            }
-        }
+            formatter.setRoundingMode(roundingMode);
+            formatter.setMaximumFractionDigits(fractionDigits);
 
-        if (isNegate) {
-            result = "-" + result;
-        }
-        if (!inputting && !afterPoint.equals("")) {
-            char lastSymbol = result.charAt(result.length() - 1);
-            while (lastSymbol == '0') {
-                result = result.substring(0, result.length() - 1);
-                lastSymbol = result.charAt(result.length() - 1);
-            }
-            if(lastSymbol == ','){
-                result = result.substring(0, result.length() - 1);
-            }
+            result = formatter.format(val);
         }
         return result;
     }
@@ -1199,22 +1222,5 @@ public class Controller {
 
         return new BigDecimal(numberStr);
     }
-
-    /**
-     * Function defines if string consist of only one type of characters
-     *
-     * @param string    value will be checked
-     * @param character symbols for checking
-     * @return boolean if string consist of only such characters
-     */
-    private boolean stringContainsOnly(String string, char character) {
-        for (char symbol : string.toCharArray()) {
-            if (symbol != character) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
 }

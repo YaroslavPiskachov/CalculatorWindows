@@ -1,10 +1,25 @@
 package model;
 
 /**
- * Enum represents binary operations and symbol for their showing
+ * Enum represents binary operations and symbols for their showing to user
  */
 public enum BinaryOperation implements Operation{
-    PLUS(" + "), MINUS(" - "), MULTIPLY(" × "), DIVIDE(" ÷ ");
+    /**
+     * Plus operation
+     */
+    PLUS("+"),
+    /**
+     * Minus operation
+     */
+    MINUS("-"),
+    /**
+     * Multiply operation
+     */
+    MULTIPLY("×"),
+    /**
+     * Divide operation
+     */
+    DIVIDE("÷");
     /**
      * Symbol of operation
      */

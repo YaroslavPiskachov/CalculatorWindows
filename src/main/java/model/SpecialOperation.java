@@ -4,31 +4,50 @@ package model;
  * Enum represents special operations functions for their showing
  */
 public enum SpecialOperation implements Operation{
+    /**
+     * Sqr operation
+     */
     SQR {
         @Override
         public String getOperationSign(String val) {
             return "sqr( " + val.replace(".", ",") + " )";
         }
 
-    }, SQRT {
+    },
+    /**
+     * Sqr operation
+     */
+    SQRT {
         @Override
         public String getOperationSign(String val) {
             return "√( " + val.replace(".", ",") + " )";
         }
 
-    }, ONE_DIVIDED {
+    },
+    /**
+     * One divided operation
+     */
+    ONE_DIVIDED {
         @Override
         public String getOperationSign(String val) {
             return "1/( " + val.replace(".", ",") + " )";
         }
 
-    }, NEGATE {
+    },
+    /**
+     * Negate operation
+     */
+    NEGATE {
         @Override
         public String getOperationSign(String val) {
             return "negate( " + val.replace(".", ",") + " )";
         }
 
-    }, PERCENT {
+    },
+    /**
+     * Percent operation
+     */
+    PERCENT {
         @Override
         public String getOperationSign(String val) {
             return "%( " + val.replace(".", ",") + " )";

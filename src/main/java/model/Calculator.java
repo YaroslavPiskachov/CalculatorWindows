@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 import static model.BinaryOperation.*;
 import static model.SpecialOperation.*;
@@ -205,19 +207,6 @@ public class Calculator {
 
     public void setMemoryValue(BigDecimal currentValue) {
         this.memoryValue = currentValue;
-    }
-
-    private static boolean isIntegerNormal(BigDecimal bd) {
-        return bd.signum() == 0 || bd.scale() <= 0 || bd.stripTrailingZeros().scale() <= 0;
-    }
-    static int integerDigits(BigDecimal n) {
-        return n.precision() - n.scale();
-    }
-
-    //a mod b = a - floor(a / b) * b
-    public static void main(String[] args) {
-        BigDecimal val = new BigDecimal("0.000000000");
-        System.out.println(val.unscaledValue().equals(BigInteger.ZERO));
     }
 
 }
