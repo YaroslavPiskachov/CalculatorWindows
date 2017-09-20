@@ -6,6 +6,9 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import static model.BinaryOperation.*;
 import static model.SpecialOperation.*;
@@ -16,6 +19,11 @@ import static model.SpecialOperation.*;
 public class Calculator {
 
     /**
+     * List consist of objects which should be in history
+     */
+    private List<Object> history = new ArrayList<>();
+
+    /**
      * Variable for keeping value in memory of calculator
      */
     private BigDecimal memoryValue;
@@ -24,6 +32,54 @@ public class Calculator {
      * Value equals to one hundred. Needed for calculating percent
      */
     private BigDecimal oneHundred = new BigDecimal("100");
+
+    /**
+     * Function for adding element to history
+     *
+     * @param obj
+     */
+    public void addToHistory(Object obj){
+        history.add(obj);
+    }
+
+    /**
+     * Function for deleting last element from history
+     */
+    public void deleteLastInHistory(){
+        history.remove(history.size() - 1);
+    }
+
+    /**
+     * Function for getting element from history
+     */
+    public Object getFromHistory(int i){
+        return history.get(i);
+    }
+
+    /**
+     * Function for getting history size
+     */
+    public int getHistorySize(){
+        return history.size();
+    }
+
+    /**
+     * Function for getting last element from history
+     */
+    public Object getLastFromHistory(){
+        Object res = null;
+        if(history.size() != 0){
+            res = history.get(history.size() - 1);
+        }
+        return res;
+    }
+
+    /**
+     * Function for clearing history
+     */
+    public void makeHistoryEmpty(){
+        history.clear();
+    }
 
     /**
      * Function for executing sqrt operation
@@ -70,6 +126,13 @@ public class Calculator {
     }
 
 
+    /**
+     * Function for executing negate operation
+     *
+     * @param currentValue operation will be executed for
+     *
+     * @return {@code BigDecimal} result of operation
+     */
     private  BigDecimal negate(BigDecimal currentValue) {
         return currentValue.negate();
     }
@@ -145,17 +208,26 @@ public class Calculator {
         return currentValue;
     }
 
-    public BigDecimal executeOperation(Operation binaryOperation, BigDecimal firstValue, BigDecimal secondValue) throws DivisionByZeroException, WrongOperationException {
+    /**
+     * Function for getting result of executing some operation which needs two values
+     *
+     * @param operation operation which will be executed
+     * @param firstValue first value for calculating
+     * @param secondValue second value for calculating
+     *
+     * @return {@code BigDecimal} result of operation
+     */
+    public BigDecimal executeOperation(Operation operation, BigDecimal firstValue, BigDecimal secondValue) throws DivisionByZeroException, WrongOperationException {
         BigDecimal answer;
-        if(binaryOperation == PLUS){
+        if(operation == PLUS){
             answer = plus(firstValue,secondValue);
-        } else if(binaryOperation == MINUS){
+        } else if(operation == MINUS){
             answer = minus(firstValue,secondValue);
-        } else if(binaryOperation == MULTIPLY){
+        } else if(operation == MULTIPLY){
             answer = multiply(firstValue,secondValue);
-        } else if(binaryOperation == DIVIDE){
+        } else if(operation == DIVIDE){
             answer = divide(firstValue,secondValue);
-        } else if(binaryOperation == PERCENT){
+        } else if(operation == PERCENT){
             answer = percent(firstValue,secondValue);
         } else {
             throw new WrongOperationException();
@@ -164,6 +236,14 @@ public class Calculator {
         return answer;
     }
 
+    /**
+     * Function for getting result of executing some special operation which needs only one value
+     *
+     * @param specialOperation operation which will be executed
+     * @param firstValue value for calculating
+     *
+     * @return {@code BigDecimal} result of operation
+     */
     public BigDecimal executeOperation(SpecialOperation specialOperation, BigDecimal firstValue) throws DivisionByZeroException, NegativeValueForSqrtException, WrongOperationException {
         BigDecimal answer;
         if(specialOperation == SQR){
@@ -180,6 +260,7 @@ public class Calculator {
 
         return answer;
     }
+
     /**
      * Function for removing value from memory
      */

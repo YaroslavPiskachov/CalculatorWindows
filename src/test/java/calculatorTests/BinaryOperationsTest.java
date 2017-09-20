@@ -322,6 +322,6 @@ public class BinaryOperationsTest extends MyTestBox {
                 push(KeyCode.SUBTRACT);
                 break;
         }
-        assertEquals(" " + currentValue + " " + operation.operationSign + " ", historyLabel.getText());
+        assertEquals(currentValue + " " + operation.operationSign+ " ", historyLabel.getText());
     }
 }

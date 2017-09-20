@@ -19,10 +19,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static javafx.scene.input.KeyCode.*;
 import static model.SpecialOperation.*;
@@ -52,6 +49,11 @@ public class Controller {
      * Model of calculator
      */
     private static Calculator calculator = new Calculator();
+
+    /**
+     * Max count of zeros that can be at the beginning of number
+     */
+    private final int MAX_COUNT_OF_FIRST_ZEROS = 4;
 
     /**
      * Max number in normal system for doing calculations
@@ -158,7 +160,7 @@ public class Controller {
      * Define result of last special operation added to history
      * if "null" means last operation is not special
      */
-    private String lastSpecialAddedToHistory;
+    private SpecialOperation lastSpecialAddedToHistory;
 
     /**
      * Is last pressed button for adding digit
@@ -393,6 +395,15 @@ public class Controller {
     Button clearCurrentButton;
 
     /**
+     * Formatter object for displaying values on label
+     */
+    private DecimalFormat formatter = new DecimalFormat();
+
+    /**
+     * Symbols for correct formatting and displaying values on label
+     */
+    private DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    /**
      * Function represents listener on pressing action of moving window
      */
     @FXML
@@ -484,6 +495,7 @@ public class Controller {
         lastValue = null;
         displayValue(DEFAULT_VALUE);
         historyLabel.setText(" ");
+        calculator.makeHistoryEmpty();
         isOperationSpecial = false;
         isCalculateButtonLast = false;
         lastSpecialAddedToHistory = null;
@@ -540,6 +552,7 @@ public class Controller {
             }
             answer = null;
             historyLabel.setText(" ");
+            calculator.makeHistoryEmpty();
             isDigitAddedLast = true;
             lastSpecialAddedToHistory = null;
             specialOperation = null;
@@ -555,6 +568,7 @@ public class Controller {
      */
     @FXML
     public void mReadButton() {
+
         deleteLastSpecialInHistory();
         try {
             displayValue(calculator.getMemoryValue());
@@ -630,16 +644,9 @@ public class Controller {
         SpecialOperation specialOperation = (SpecialOperation) operationMap.get(button);
 
         isOperationSpecial = true;
-        String toHistory;
-
-        if (lastSpecialAddedToHistory == null) {
-            toHistory = makeString(currentValue).replace(BIG_NUMBER_SEPARATOR, "");
-        } else {
-            toHistory = lastSpecialAddedToHistory;
-        }
 
         if (!(specialOperation == NEGATE && lastSpecialAddedToHistory == null)) {
-            addToHistoryLabel(specialOperation.getOperationSign(toHistory));
+            addToHistoryLabel(specialOperation);
         }
         this.specialOperation = specialOperation;
 
@@ -710,6 +717,7 @@ public class Controller {
         } catch (OverflowException r) {
             r.printStackTrace();
         }
+
         mainLabel.setText(toMainLabel);
         replaceValue = true;
         resizeFontMainLabel();
@@ -729,7 +737,7 @@ public class Controller {
 
         specialOperation = null;
         isOperationSpecial = false;
-        addToHistoryLabel(" " + binaryOperation.operationSign + " ");
+        addToHistoryLabel(binaryOperation);
         if (!isDigitAddedLast) {
             this.binaryOperation = binaryOperation;
             return;
@@ -769,26 +777,16 @@ public class Controller {
      * Needed for replacing value in history
      */
     private void deleteLastSpecialInHistory() {
-        String[] history = historyLabel.getText().split(" ");
-        if (history.length > 1) {
-            String toHistory = "";
-            int deleteElements = 2;
-            String lastStr = history[history.length - 1];
-            int countOfOperations = 0;
-            for (int i = 2; lastStr.equals(")"); i++) {
-                countOfOperations++;
-                lastStr = history[history.length - i];
-            }
-            deleteElements *= countOfOperations;
-            if (deleteElements != 0) {
-                deleteElements++;
-            }
-            for (int i = 0; i < history.length - deleteElements; i++) {
-                toHistory += history[i] + " ";
-            }
-            historyLabel.setText(toHistory);
+        int historySize = calculator.getHistorySize();
+        boolean inLoop = false;
+        for (int i = historySize - 1; i >= 0 && calculator.getFromHistory(i) instanceof SpecialOperation; i--) {
+            inLoop = true;
+            calculator.deleteLastInHistory();
         }
-        isOperationSpecial = false;
+        if (inLoop) {
+            calculator.deleteLastInHistory();
+        }
+        showHistory();
     }
 
     /**
@@ -822,7 +820,7 @@ public class Controller {
                 toMainLabel = inMainLabel + FLOAT_POINT;
             }
         } else {
-            if (isIntegerNormal(val) && val.scale() != 0) {
+            if (isInteger(val) && val.scale() != 0) {
                 val = new BigDecimal(val.toBigInteger());
             }
             toMainLabel = makeString(val);
@@ -850,7 +848,7 @@ public class Controller {
         if ((currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 17) ||
                 !currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 16) {
             inputting = false;
-            return;                                     // number too long
+            return;            // number too long
         }
         setDisableButtons(false);
         if (mainLabel.getText().equals(overflowExceptionMsg)) {
@@ -860,6 +858,7 @@ public class Controller {
         if (lastSpecialAddedToHistory != null) {
             deleteLastSpecialInHistory();
         }
+
         BigDecimal newCurrentValue;
         BinaryOperation operation;
 
@@ -875,20 +874,20 @@ public class Controller {
             BigDecimal newDigit = new BigDecimal(digit);
             newCurrentValue = currentValue;
 
-            if (!isIntegerNormal(newCurrentValue)) {
+            if (!isInteger(newCurrentValue)) {
                 newDigit = newDigit.movePointLeft(1);
             }
 
             newDigit = newDigit.movePointLeft(newCurrentValue.scale());
 
-            if (new BigDecimal(digit).equals(BigDecimal.ZERO)) {
+            if (digit == 0) {
                 int newScale = newCurrentValue.scale() + 1;
-
                 newCurrentValue = newCurrentValue.setScale(newScale, BigDecimal.ROUND_DOWN);
             } else {
-                if (isIntegerNormal(newCurrentValue) || newCurrentValue.compareTo(BigDecimal.ZERO) == 0) {
+                if (isInteger(newCurrentValue) || newCurrentValue.compareTo(BigDecimal.ZERO) == 0) {
                     newDigit = newDigit.movePointLeft(1);
                 }
+
                 newCurrentValue = calculator.executeOperation(operation, currentValue, newDigit);
                 if (operation == BinaryOperation.MINUS) {
                     newCurrentValue = newCurrentValue.negate();
@@ -905,37 +904,61 @@ public class Controller {
      * Function check is value has integer type
      *
      * @param bd value will be checked
-     *
      * @return is it integer or not
      */
-    private boolean isIntegerNormal(BigDecimal bd) {
+    private boolean isInteger(BigDecimal bd) {
         return bd.signum() == 0 || bd.scale() <= 0 || bd.stripTrailingZeros().scale() <= 0;
     }
 
     /**
      * Function adds numbers and operation to history
      *
-     * @param str expression with operation and numbers
+     * @param operation expression with operation and numbers
      */
-    private void addToHistoryLabel(String str) {
-        String history = historyLabel.getText();
-        if (!isOperationSpecial) {
+    private void addToHistoryLabel(Operation operation) {
+
+        if (operation instanceof BinaryOperation) {
             if (!isDigitAddedLast && lastValue != null) {
-                history = history.substring(0, history.length() - 3) + str; // history without last operation symbol + new operation symbol
+                calculator.deleteLastInHistory();
             } else {
-                if (history.charAt(history.length() - 1) == ')') {
-                    history += str;
-                } else {
-                    history += makeString(currentValue).replace(BIG_NUMBER_SEPARATOR, "") + str;
+                if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
+                    calculator.addToHistory(currentValue);
                 }
                 lastSpecialAddedToHistory = null;
             }
         } else {
-            deleteLastSpecialInHistory();
-            history = historyLabel.getText() + str;
-            lastSpecialAddedToHistory = str;
+            if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
+                calculator.addToHistory(currentValue);
+            }
+            lastSpecialAddedToHistory = (SpecialOperation) operation;
         }
-        historyLabel.setText(history);
+        calculator.addToHistory(operation);
+        showHistory();
+    }
+
+    private void showHistory() {
+        StringBuilder history = new StringBuilder("");
+        int historySize = calculator.getHistorySize();
+        for (int i = 0; i < historySize; i++) {
+            Object obj = calculator.getFromHistory(i);
+            String toHistory = null;
+            if (obj instanceof BigDecimal) {
+                toHistory = makeString((BigDecimal) obj).replace(BIG_NUMBER_SEPARATOR, "");
+
+                while (i + 1 < historySize && calculator.getFromHistory(i + 1) instanceof SpecialOperation) { // for nested operations
+                    toHistory = ((SpecialOperation) calculator.getFromHistory(i + 1)).makeOperationSign(toHistory);
+                    i++;
+                }
+            } else if (obj instanceof BinaryOperation) {
+                toHistory = ((BinaryOperation) obj).operationSign;
+            }
+
+            if (toHistory != null) {
+                toHistory += " ";
+                history.append(toHistory);
+            }
+        }
+        historyLabel.setText(history.toString());
     }
 
     /**
@@ -944,8 +967,10 @@ public class Controller {
     private void resizeFontMainLabel() {
         mainLabel.setFont(fontForMainLabel);
         double textWidth = computeTextWidth(mainLabel.getFont(), mainLabel.getText());
-        if (mainLabel.getWidth() < textWidth) {
-            double scale = textWidth / mainLabel.getWidth() + 0.05;
+        double labelWidth = mainLabel.getWidth();
+        double additional = 0.05;
+        if (labelWidth < textWidth) {
+            double scale = textWidth / labelWidth + additional;
             mainLabel.setFont(new Font(fontForMainLabel.getName(), mainLabel.getFont().getSize() / scale));
         }
     }
@@ -1024,10 +1049,6 @@ public class Controller {
                 button = backSpaceButton;
             } else if (keyCode == COMMA) {
                 button = commaButton;
-            } else if (keyCode == L) {
-                System.out.println(currentValue + " - current value");
-                System.out.println(currentValue.scale() + " - scale of current value");
-                System.out.println(lastValue + " - last value");
             }
             if (button != null) {
                 button.fire();
@@ -1036,10 +1057,9 @@ public class Controller {
         });
 
         stage.getScene().setOnKeyReleased(event -> {
-            for (Button button : buttonsWithImage) {
-                button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), false);
-            }
-            for (Button button : buttonsWithText) {
+            List<Button> buttons = new ArrayList<>(buttonsWithImage);
+            buttons.addAll(buttonsWithText);
+            for (Button button : buttons) {
                 button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), false);
             }
         });
@@ -1061,22 +1081,21 @@ public class Controller {
      * Function increases or reduces content of buttons after resizing window
      */
     private void resizeFontButtons() {
-
+        List<Button> buttons = new ArrayList<>(buttonsWithImage);
+        buttons.addAll(buttonsWithText);
+        String imageStyle = "";
+        String textStyle = "";
         if (stage.getHeight() > 645.0 && stage.getWidth() > 375.0) {
-            for (Button button : buttonsWithImage) {
-                button.setStyle(extendedBackgroundSize);
-            }
-            for (Button button : buttonsWithText) {
-                button.setStyle(extendedFontSize);
-            }
-        } else {
-            for (Button button : buttonsWithImage) {
-                button.setStyle("");
-            }
-            for (Button button1 : buttonsWithText) {
-                button1.setStyle("");
-            }
+            imageStyle = extendedBackgroundSize;
+            textStyle = extendedFontSize;
         }
+        for (Button button : buttonsWithImage) {
+            button.setStyle(imageStyle);
+        }
+        for (Button button : buttonsWithText) {
+            button.setStyle(textStyle);
+        }
+
     }
 
     /**
@@ -1100,24 +1119,18 @@ public class Controller {
      * @return String which represents number for user
      */
     private String convertIntoExp(BigDecimal bigDecimal) {
-
         String exponentialSymbolSign = SYMBOL_EXP;
-
         if (!(bigDecimal.compareTo(BigDecimal.ONE.negate()) == 1 && bigDecimal.compareTo(BigDecimal.ONE) == -1)) {
             exponentialSymbolSign += "+";
         }
-
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
         symbols.setExponentSeparator(exponentialSymbolSign);
 
-        DecimalFormat formatter = new DecimalFormat("0.######E0");
-        formatter.setRoundingMode(RoundingMode.HALF_UP);
-        formatter.setDecimalFormatSymbols(symbols);
-        formatter.setMaximumFractionDigits(MAX_DIGITS_IN_NUMBER - 2);
-        String result = formatter.format(bigDecimal);
+        DecimalFormat expFormatter = new DecimalFormat("0.######E0");
+        expFormatter.setDecimalFormatSymbols(symbols);
+        expFormatter.setMaximumFractionDigits(MAX_DIGITS_IN_NUMBER - 2);
 
-        if (!result.contains(",")) {
+        String result = expFormatter.format(bigDecimal);
+        if (!result.contains(FLOAT_POINT)) {
             int expIndex = result.indexOf(SYMBOL_EXP);
             result = result.substring(0, expIndex) + FLOAT_POINT + result.substring(expIndex);
         }
@@ -1132,6 +1145,7 @@ public class Controller {
 
     /**
      * Function counts digits in BigInteger value
+     *
      * @param number value count of digits will be counted for
      * @return count of digits in {@code number} value
      */
@@ -1147,6 +1161,7 @@ public class Controller {
 
     /**
      * Function counts zeros at the beginning of value
+     *
      * @param number value for counting
      * @return count of zeros
      */
@@ -1160,6 +1175,7 @@ public class Controller {
     }
 
 
+
     /**
      * Function for converting {@code BigDecimal} value to a {@code String} value for displaying to user
      *
@@ -1169,35 +1185,21 @@ public class Controller {
      */
     public String makeString(BigDecimal val) throws ArithmeticException {
         String result;
-        DecimalFormat formatter = new DecimalFormat();
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator(',');
+        symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
         symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
         formatter.setDecimalFormatSymbols(symbols);
         if (inputting && isValueFloat) {
-            String valStr = val.toPlainString();
-
-            result = formatter.format(val.toBigInteger());
-            if (val.scale() != 0) {
-                result += FLOAT_POINT + valStr.substring(valStr.indexOf('.') + 1);
-            }
-
-        } else if ((val.compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) == 1
-                || val.compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM.negate()) == -1
-                || (val.compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) == -1 && val.compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM.negate()) == 1
-                && val.compareTo(BigDecimal.ZERO) != 0)
-                || val.stripTrailingZeros().precision() >= 12 && zeroStartCounter(val) >= 4)) {
+            formatter.setMinimumFractionDigits(val.scale());
+            result = formatter.format(val);
+            //result += FLOAT_POINT + valStr.substring(valStr.indexOf('.') + 1); // todo: use formatter here
+            formatter.setMinimumFractionDigits(0);
+        } else if (val.abs().compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) == 1
+                || (val.abs().compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) == -1 && val.compareTo(BigDecimal.ZERO) != 0)
+                || (val.stripTrailingZeros().precision() >= MAX_DIGITS_IN_NUMBER - MAX_COUNT_OF_FIRST_ZEROS - 1 && zeroStartCounter(val) >= MAX_COUNT_OF_FIRST_ZEROS)) {
             result = convertIntoExp(val);
         } else {
-
-            RoundingMode roundingMode = RoundingMode.HALF_UP;
             int fractionDigits = MAX_DIGITS_IN_NUMBER - getDigitCount(val.toBigInteger()) - 1;
-            if (val.toBigInteger().equals(BigInteger.ZERO)) {
-                roundingMode = RoundingMode.HALF_UP;
-
-            }
-
-            formatter.setRoundingMode(roundingMode);
+            formatter.setRoundingMode(RoundingMode.HALF_UP);
             formatter.setMaximumFractionDigits(fractionDigits);
 
             result = formatter.format(val);
@@ -1217,10 +1219,7 @@ public class Controller {
         if (numberStr.length() == 0) {
             throw new NullPointerException();
         }
-
         numberStr = numberStr.replace(FLOAT_POINT, ".").replace(BIG_NUMBER_SEPARATOR, "").replace(SYMBOL_EXP, "E");
-
         return new BigDecimal(numberStr);
     }
-
 }
