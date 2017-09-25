@@ -2,96 +2,29 @@ package model;
 
 /**
  * Enum represents special operations functions for their showing
+ *
+ * @author Yaroslav Piskachov
  */
-public enum SpecialOperation implements Operation{
+public enum SpecialOperation implements Operation {
     /**
      * Sqr operation
      */
-    SQR {
-        private String operationSign;
-
-        public String getOperationSign() {
-            return operationSign;
-        }
-
-        @Override
-        public String makeOperationSign(String val) {
-            return operationSign = "sqr( " + val.replace(".", ",") + " )";
-        }
-
-    },
+    SQR,
     /**
      * Sqr operation
      */
-    SQRT {
-        private String operationSign;
-
-        public String getOperationSign() {
-            return operationSign;
-        }
-
-        @Override
-        public String makeOperationSign(String val) {
-            return operationSign = "√( " + val.replace(".", ",") + " )";
-        }
-
-    },
+    SQRT,
     /**
      * One divided operation
      */
-    ONE_DIVIDED {
-        private String operationSign;
-
-        public String getOperationSign() {
-            return operationSign;
-        }
-
-        @Override
-        public String makeOperationSign(String val) {
-            return operationSign = "1/( " + val.replace(".", ",") + " )";
-        }
-
-    },
+    ONE_DIVIDED,
     /**
      * Negate operation
      */
-    NEGATE {
-        private String operationSign;
-
-        public String getOperationSign() {
-            return operationSign;
-        }
-
-        @Override
-        public String makeOperationSign(String val) {
-            return operationSign = "negate( " + val.replace(".", ",") + " )";
-        }
-
-    },
+    NEGATE,
     /**
      * Percent operation
      */
-    PERCENT {
-        private String operationSign;
+    PERCENT;
 
-
-        public String getOperationSign() {
-            return operationSign;
-        }
-
-        @Override
-        public String makeOperationSign(String val) {
-           return operationSign = "%( " + val.replace(".", ",") + " )";
-        }
-
-    };
-
-    //private String operationSign;
-
-    /**
-     * Function for getting operation appearance
-     * @param val number or string operation should be displayed with
-     * @return String with operation symbol and {@code val}
-     */
-    public abstract String makeOperationSign(String val);
 }

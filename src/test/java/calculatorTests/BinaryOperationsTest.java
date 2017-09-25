@@ -97,7 +97,7 @@ public class BinaryOperationsTest extends MyTestBox {
 
     @Test
     public void minusTest() {  // value_1 subtracts from value_2
-/*
+
         // integer value
         combinationTestTemplate("282 ± - 90 -","-372","-282 - 90 -");
         combinationTestTemplate("67±8  - 442±  -","-236","-678 - -442 -");
@@ -130,7 +130,7 @@ public class BinaryOperationsTest extends MyTestBox {
         combinationTestTemplate("48,91938658223057±  - 529,53890222±75615  -","480,6195156453309","-48,91938658223057 - -529,5389022275615 -");
         combinationTestTemplate("63±,67438  - 212 -","-275,67438","-63,67438 - 212 -");
         combinationTestTemplate("159,±2378334240943  - 166,±4704900087808  -","7,2326565846865","-159,2378334240943 - -166,4704900087808 -");
-        */combinationTestTemplate("129,3215065814358 - 16481,23592425399 -","-16 351,91441767255");
+        combinationTestTemplate("129,3215065814358 - 16481,23592425399 -","-16 351,91441767255");
         combinationTestTemplate("4±94,685818449823  - 594,±543776176685  -","99,857957726862","-494,685818449823 - -594,543776176685 -");
         combinationTestTemplate("633,2793±51349099  - 706±72,0331552599  -","70 038,7538039108","-633,279351349099 - -70672,0331552599 -");
         combinationTestTemplate("89884,±0603350258  - 93041,1856138255±  -","3 157,1252787997","-89884,0603350258 - -93041,1856138255 -");
@@ -322,6 +322,6 @@ public class BinaryOperationsTest extends MyTestBox {
                 push(KeyCode.SUBTRACT);
                 break;
         }
-        assertEquals(currentValue + " " + operation.operationSign+ " ", historyLabel.getText());
+        assertEquals(currentValue + " " + binaryOperationStringMap.get(operation) + " ", historyLabel.getText());
     }
 }

@@ -10,16 +10,22 @@ import javafx.scene.control.Label;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Font;
+
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import model.*;
+import sun.util.locale.provider.LocaleProviderAdapter;
+import sun.util.locale.provider.ResourceBundleBasedAdapter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.spi.NumberFormatProvider;
 import java.util.*;
+import java.util.List;
 
 import static javafx.scene.input.KeyCode.*;
 import static model.SpecialOperation.*;
@@ -30,1196 +36,1303 @@ import static model.SpecialOperation.*;
  * Class consist of methods which are event listeners for every button in Application
  * and some methods for their support.
  * Also there are methods for correct displaying data
+ *
+ * @author Yaroslav Piskachov
  */
 
 public class Controller {
 
-    /**
-     * Previous inputted value for calculations
-     */
-    private BigDecimal lastValue;
-
-
-    /**
-     * Collection for mapping operations and id's
-     */
-    private Map<Button, Operation> operationMap = new HashMap<>();
-
-    /**
-     * Model of calculator
-     */
-    private static Calculator calculator = new Calculator();
-
-    /**
-     * Max count of zeros that can be at the beginning of number
-     */
-    private final int MAX_COUNT_OF_FIRST_ZEROS = 4;
-
-    /**
-     * Max number in normal system for doing calculations
-     */
-    private final BigDecimal MAX_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("9999999999999999.4999999999999999");
-
-    /**
-     * Max count of digits in number calculator can display
-     */
-    private final int MAX_DIGITS_IN_NUMBER = 17;
-
-    /**
-     * Symbol which defines number as in exponential system
-     */
-    private final String SYMBOL_EXP = "e";
-
-    /**
-     * Symbol which separates parts of float number
-     */
-    private final String FLOAT_POINT = ",";
-
-    /**
-     * Symbol which separates parts of big number by three digits
-     */
-    private final String BIG_NUMBER_SEPARATOR = " ";
-
-    /**
-     * Value which is defined as initial for calculator display
-     */
-    private final BigDecimal DEFAULT_VALUE = BigDecimal.ZERO;
-
-    /**
-     * The greatest value calculator can work with
-     */
-    private final BigDecimal MAX_VALUE = new BigDecimal("1.000000000000000E+10000");
-
-    /**
-     * The nearest positive value to zero
-     */
-    private final BigDecimal MIN_POSITIVE_VALUE = new BigDecimal("1E-9999");
-
-    /**
-     * The nearest negative value to zero
-     */
-    private final BigDecimal MAX_NEGATIVE_VALUE = new BigDecimal("-1E-9999");
-
-    /**
-     * Minimal value calculator can work with
-     */
-    private final BigDecimal MIN_VALUE = new BigDecimal("-9.999999999999999E+9999");
-
-    /**
-     * Current value contains number from main label of calculator
-     */
-    private BigDecimal currentValue = DEFAULT_VALUE;
-
-    /**
-     * Answer of calculation last and current values
-     */
-    private BigDecimal answer;
-
-    /**
-     * Stage of application
-     */
-    private Stage stage;
-
-    /**
-     * Define font of numbers in main label of window
-     */
-    private final Font fontForMainLabel = new Font("Microsoft JhengHei UI Bold", 45);
-
-
-    /**
-     * Css style of font of buttons with text after increasing window size
-     */
-    private final String extendedFontSize = "-fx-font-size: 26px";
-
-    /**
-     * Css style of background size for buttons with image after increasing window size
-     */
-    private final String extendedBackgroundSize = "-fx-background-size: 85 60";
-
-    /**
-     * Define type of binary operation which is selected
-     */
-    private BinaryOperation binaryOperation;
-
-    /**
-     * Define type of special operation which is selected
-     */
-    private SpecialOperation specialOperation;
-
-    /**
-     * Is replacing value needed
-     */
-    private boolean replaceValue;
-
-    /**
-     * Is last executed operation special
-     */
-    private boolean isOperationSpecial;
-
-    /**
-     * Define result of last special operation added to history
-     * if "null" means last operation is not special
-     */
-    private SpecialOperation lastSpecialAddedToHistory;
-
-    /**
-     * Is last pressed button for adding digit
-     */
-    private boolean isDigitAddedLast = true;
-
-    /**
-     * Is last pressed button calculate
-     */
-    private boolean isCalculateButtonLast;
-
-    /**
-     * List of buttons with image on a background
-     */
-    private List<Button> buttonsWithImage;
-
-    /**
-     * List of buttons with text on a background
-     */
-    private List<Button> buttonsWithText;
-
-    /**
-     * Coordinates of window location before maximazing
-     */
-    private double x, y;
-
-    /**
-     * Massage will be shown to user when overflow exception was thrown
-     */
-    private String overflowExceptionMsg = "Переполнение";
-
-    /**
-     * Massage will be shown to user when division by zero exception was thrown
-     */
-    private String divisionByZeroMsg = "Деление на 0";
-
-    /**
-     * Massage will be shown to user when negative value for sqrt exception was thrown
-     */
-    private String negativeValueForSqrtExceptionMsg = "Введены неверные данные";
-
-    /**
-     * Parent pane for calculator
-     */
-    @FXML
-    AnchorPane anchorPane;
-
-    /**
-     * Label for displaying inputted digits and answers
-     */
-    @FXML
-    Label mainLabel;
-
-    /**
-     * Label for displaying history of operations
-     */
-    @FXML
-    Label historyLabel;
-
-    /**
-     * Button for clearing memory
-     */
-    @FXML
-    Button mClear;
-
-    /**
-     * Button for displaying number from memory to main label
-     */
-    @FXML
-    Button mRead;
-
-    /**
-     * Button for saving number to memory from main label
-     */
-    @FXML
-    Button mSave;
-
-    /**
-     * Button for subtracting value in main label from memory value
-     */
-    @FXML
-    Button mMinus;
-
-    /**
-     * Button for adding value in main label to memory value
-     */
-    @FXML
-    Button mPlus;
-
-    /**
-     * Button for inputting digit 0
-     */
-    @FXML
-    Button zeroButton;
-
-    /**
-     * Button for inputting digit 1
-     */
-    @FXML
-    Button oneButton;
-
-    /**
-     * Button for inputting digit 2
-     */
-    @FXML
-    Button twoButton;
-
-    /**
-     * Button for inputting digit 3
-     */
-    @FXML
-    Button threeButton;
-
-    /**
-     * Button for inputting digit 4
-     */
-    @FXML
-    Button fourButton;
-
-    /**
-     * Button for inputting digit 5
-     */
-    @FXML
-    Button fiveButton;
-
-    /**
-     * Button for inputting digit 6
-     */
-    @FXML
-    Button sixButton;
-
-    /**
-     * Button for inputting digit 7
-     */
-    @FXML
-    Button sevenButton;
-
-    /**
-     * Button for inputting digit 8
-     */
-    @FXML
-    Button eightButton;
-
-    /**
-     * Button for inputting digit 9
-     */
-    @FXML
-    Button nineButton;
-
-    /**
-     * Button for plus operation
-     */
-    @FXML
-    Button plusButton;
-
-    /**
-     * Button for minus operation
-     */
-    @FXML
-    Button minusButton;
-
-    /**
-     * Button for multiply operation
-     */
-    @FXML
-    Button multiplyButton;
-
-    /**
-     * Button for divide operation
-     */
-    @FXML
-    Button divideButton;
-
-    /**
-     * Button for calculate answer
-     */
-    @FXML
-    Button calculateButton;
-
-    /**
-     * Button for inputting comma
-     */
-    @FXML
-    Button commaButton;
-
-    /**
-     * Button for removing last inputted symbol
-     */
-    @FXML
-    Button backSpaceButton;
-
-    /**
-     * Button for sqr operation
-     */
-    @FXML
-    Button sqrButton;
-
-    /**
-     * Button for sqrt operation
-     */
-    @FXML
-    Button sqrtButton;
-
-    /**
-     * Button for percent operation
-     */
-    @FXML
-    Button percentButton;
-
-    /**
-     * Button for one divided operation
-     */
-    @FXML
-    Button oneDividedButton;
-
-    /**
-     * Button for changing sign of value
-     */
-    @FXML
-    Button signButton;
-
-    /**
-     * Button for clearing all elements of calculation
-     */
-    @FXML
-    Button clearButton;
-
-    /**
-     * Button for clearing only value in main label
-     */
-    @FXML
-    Button clearCurrentButton;
-
-    /**
-     * Formatter object for displaying values on label
-     */
-    private DecimalFormat formatter = new DecimalFormat();
-
-    /**
-     * Symbols for correct formatting and displaying values on label
-     */
-    private DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-    /**
-     * Function represents listener on pressing action of moving window
-     */
-    @FXML
-    public void movementPressed(MouseEvent mouseEvent) {
-        x = stage.getX() - mouseEvent.getScreenX();
-        y = stage.getY() - mouseEvent.getScreenY();
-    }
-
-    /**
-     * Function represents listener on dragging action of moving window
-     */
-    @FXML
-    public void movementDragged(MouseEvent mouseEvent) {
-        if (stage.getScene().getCursor() != Cursor.N_RESIZE) {
-            stage.setX(mouseEvent.getScreenX() + x);
-            stage.setY(mouseEvent.getScreenY() + y);
-        }
-    }
-
-    /**
-     * Function represents listener on button for closing window
-     */
-    @FXML
-    public void closeWindowButton() {
-        stage.close();
-    }
-
-    /**
-     * Function represents listener on button for extending window on full screen
-     */
-    @FXML
-    public void extendWindowButton() {
-        stage.setMaximized(!stage.isMaximized());
-        resizeFontMainLabel();
-    }
-
-    /**
-     * Function represents listener for buttons with digits for input
-     */
-    @FXML
-    public void digitButton(ActionEvent actionEvent) throws DivisionByZeroException, OverflowException {
-        Button pressed = (Button) actionEvent.getSource();
-        int digit = buttonsWithText.indexOf(pressed);
-        addToMainLabel(digit);
-    }
-
-    /**
-     * Function represents listener on button for hiding window on task panel
-     */
-    @FXML
-    public void hideWindowButton() {
-        stage.setIconified(true);
-    }
-
-    /**
-     * Function represents listener on button for inputting comma
-     */
-    @FXML
-    public void commaButton() throws OverflowException {
-        if (!mainLabel.getText().contains(FLOAT_POINT)) {
-            isValueFloat = true;
-            inputting = true;
-            displayValue(currentValue);
-            inputting = false;
-            replaceValue = false;
-        }
-    }
-
-    private boolean isValueFloat = false;
-
-    /**
-     * Function represents listener on button for clearing only value in main label
-     */
-    @FXML
-    public void clearCurrentButton() throws OverflowException {
-        deleteLastSpecialInHistory();
-        isValueFloat = false;
-        displayValue(DEFAULT_VALUE);
-    }
-
-    /**
-     * Function represents listener on button for clearing all elements
-     */
-    @FXML
-    public void clearAllButton() throws OverflowException {
-        setDisableButtons(false);
-        binaryOperation = null;
-        currentValue = DEFAULT_VALUE;
-        lastValue = null;
-        displayValue(DEFAULT_VALUE);
-        historyLabel.setText(" ");
-        calculator.makeHistoryEmpty();
-        isOperationSpecial = false;
-        isCalculateButtonLast = false;
-        lastSpecialAddedToHistory = null;
-        specialOperation = null;
-        answer = null;
-        isValueFloat = false;
-        resizeFontMainLabel();
-    }
-
-    /**
-     * Function represents listener on backspace button
-     */
-    @FXML
-    public void backSpaceButton() throws DivisionByZeroException, OverflowException {
-        inputting = true;
-        if (isValueFloat && currentValue.scale() == 0) {
-            displayValue(currentValue);
-        } else if (!replaceValue) {
-            int floatDigits = 0;
-            BigDecimal value = currentValue;
-            while (value.scale() != 0) {
-                floatDigits++;
-                value = value.movePointRight(1);
+   /**
+    * Previous inputted value for calculations
+    */
+   private BigDecimal lastValue;
+
+
+   /**
+    * Collection for mapping operations and id's
+    */
+   private Map<Button, Operation> operationMap = new HashMap<>();
+
+   /**
+    * Model of calculator
+    */
+   private static Calculator calculator = new Calculator();
+
+   /**
+    * Max count of zeros that can be at the beginning of number
+    */
+   private final int MAX_COUNT_OF_FIRST_ZEROS = 4;
+
+   /**
+    * Max number in normal system for doing calculations
+    */
+   private final BigDecimal MAX_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("9999999999999999.4999999999999999");
+
+   /**
+    * Minimal value which can be displayed not in exponential system
+    */
+   private final BigDecimal MIN_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("0.0000000000000001");
+
+   /**
+    * Max count of digits in number calculator can display
+    */
+   private final int MAX_DIGITS_IN_NUMBER = 17;
+
+   /**
+    * Symbol which defines number as in exponential system
+    */
+   private final String SYMBOL_EXP = "e";
+
+   /**
+    * Symbol which separates parts of float number
+    */
+   private final String FLOAT_POINT = ",";
+
+   /**
+    * Symbol which separates parts of big number by three digits
+    */
+   private final String BIG_NUMBER_SEPARATOR = " ";
+
+   /**
+    * Value which is defined as initial for calculator display
+    */
+   private final BigDecimal DEFAULT_VALUE = BigDecimal.ZERO;
+
+   /**
+    * The greatest value calculator can work with
+    */
+   private final BigDecimal MAX_VALUE = new BigDecimal("1.000000000000000E+10000");
+
+   /**
+    * The nearest positive value to zero
+    */
+   private final BigDecimal MIN_POSITIVE_VALUE = new BigDecimal("1E-9999");
+
+   /**
+    * The nearest negative value to zero
+    */
+   private final BigDecimal MAX_NEGATIVE_VALUE = new BigDecimal("-1E-9999");
+
+   /**
+    * Minimal value calculator can work with
+    */
+   private final BigDecimal MIN_VALUE = new BigDecimal("-9.999999999999999E+9999");
+
+   /**
+    * Current value contains number from main label of calculator
+    */
+   private BigDecimal currentValue = DEFAULT_VALUE;
+
+   /**
+    * Answer of calculation last and current values
+    */
+   private BigDecimal answer;
+
+   /**
+    * Stage of application
+    */
+   private Stage stage;
+
+   /**
+    * If height greater than this valuer resizing is needed
+    */
+   private final double contentButtonLimitHeight = 645.0;
+
+   /**
+    * If width greater than this valuer resizing is needed
+    */
+   private final double contentButtonLimitWidth = 375.0;
+
+   /**
+    * Define font of numbers in main label of window
+    */
+   private final Font fontForMainLabel = new Font("Microsoft JhengHei UI Bold", 45);
+
+   /**
+    * Css style of font of buttons with text after increasing window size
+    */
+   private final String extendedFontSize = "-fx-font-size: 26px";
+
+   /**
+    * Css style of background size for buttons with image after increasing window size
+    */
+   private final String extendedBackgroundSize = "-fx-background-size: 85 60";
+
+   /**
+    * Define type of binary operation which is selected
+    */
+   private BinaryOperation binaryOperation;
+
+   /**
+    * Define type of special operation which is selected
+    */
+   private SpecialOperation specialOperation;
+
+   /**
+    * Is replacing value needed
+    */
+   private boolean replaceValue;
+
+   /**
+    * Define result of last special operation added to history
+    * if "null" means last operation is not special
+    */
+   private SpecialOperation lastSpecialAddedToHistory;
+
+   /**
+    * Is last pressed button for adding digit
+    */
+   private boolean isDigitAddedLast = true;
+
+   /**
+    * Is last pressed button calculate
+    */
+   private boolean isCalculateButtonLast;
+
+   /**
+    * List of buttons with image on a background
+    */
+   private List<Button> buttonsWithImage;
+
+   /**
+    * List of buttons with text on a background
+    */
+   private List<Button> buttonsWithText;
+
+   /**
+    * Coordinates of window location before maximazing
+    */
+   private double x, y;
+
+   /**
+    * Massage will be shown to user when overflow exception was thrown
+    */
+   private String overflowExceptionMsg = "Переполнение";
+
+   /**
+    * Massage will be shown to user when division by zero exception was thrown
+    */
+   private String divisionByZeroMsg = "Деление на 0";
+
+   /**
+    * Massage will be shown to user when negative value for sqrt exception was thrown
+    */
+   private String negativeValueForSqrtExceptionMsg = "Введены неверные данные";
+
+   /**
+    * Text object for measuring string width
+    */
+   private Text helper = new Text();
+
+   /**
+    * Variable describes is user work with inputting right now
+    */
+   private boolean inputting = false;
+
+   /**
+    * Variable describes is user work with float value right now
+    */
+   private boolean isValueFloat = false;
+
+   /**
+    * Defines is putting comma needed
+    */
+   private boolean putComma;
+
+   /**
+    * Defines if zero with negative sign on a screen
+    */
+   private boolean isNegativeZero;
+
+   /**
+    * Default pattern according to out localization
+    */
+   private String defaultPattern;
+
+   /**
+    * Collection for mapping operations with their symbols
+    */
+   private Map<BinaryOperation, String> binaryOperationStringMap = new HashMap<>();
+
+   /**
+    * Collection for mapping keys with their buttons analog
+    */
+   private Map<KeyCode, Button> keyCodeButtonMap = new HashMap<>();
+
+   /**
+    * Parent pane for calculator
+    */
+   @FXML
+   AnchorPane anchorPane;
+
+   /**
+    * Label for displaying inputted digits and answers
+    */
+   @FXML
+   Label mainLabel;
+
+   /**
+    * Label for displaying history of operations
+    */
+   @FXML
+   Label historyLabel;
+
+   /**
+    * Button for clearing memory
+    */
+   @FXML
+   Button mClear;
+
+   /**
+    * Button for displaying number from memory to main label
+    */
+   @FXML
+   Button mRead;
+
+   /**
+    * Button for saving number to memory from main label
+    */
+   @FXML
+   Button mSave;
+
+   /**
+    * Button for subtracting value in main label from memory value
+    */
+   @FXML
+   Button mMinus;
+
+   /**
+    * Button for adding value in main label to memory value
+    */
+   @FXML
+   Button mPlus;
+
+   /**
+    * Button for inputting digit 0
+    */
+   @FXML
+   Button zeroButton;
+
+   /**
+    * Button for inputting digit 1
+    */
+   @FXML
+   Button oneButton;
+
+   /**
+    * Button for inputting digit 2
+    */
+   @FXML
+   Button twoButton;
+
+   /**
+    * Button for inputting digit 3
+    */
+   @FXML
+   Button threeButton;
+
+   /**
+    * Button for inputting digit 4
+    */
+   @FXML
+   Button fourButton;
+
+   /**
+    * Button for inputting digit 5
+    */
+   @FXML
+   Button fiveButton;
+
+   /**
+    * Button for inputting digit 6
+    */
+   @FXML
+   Button sixButton;
+
+   /**
+    * Button for inputting digit 7
+    */
+   @FXML
+   Button sevenButton;
+
+   /**
+    * Button for inputting digit 8
+    */
+   @FXML
+   Button eightButton;
+
+   /**
+    * Button for inputting digit 9
+    */
+   @FXML
+   Button nineButton;
+
+   /**
+    * Button for plus operation
+    */
+   @FXML
+   Button plusButton;
+
+   /**
+    * Button for minus operation
+    */
+   @FXML
+   Button minusButton;
+
+   /**
+    * Button for multiply operation
+    */
+   @FXML
+   Button multiplyButton;
+
+   /**
+    * Button for divide operation
+    */
+   @FXML
+   Button divideButton;
+
+   /**
+    * Button for calculate answer
+    */
+   @FXML
+   Button calculateButton;
+
+   /**
+    * Button for inputting comma
+    */
+   @FXML
+   Button commaButton;
+
+   /**
+    * Button for removing last inputted symbol
+    */
+   @FXML
+   Button backSpaceButton;
+
+   /**
+    * Button for sqr operation
+    */
+   @FXML
+   Button sqrButton;
+
+   /**
+    * Button for sqrt operation
+    */
+   @FXML
+   Button sqrtButton;
+
+   /**
+    * Button for percent operation
+    */
+   @FXML
+   Button percentButton;
+
+   /**
+    * Button for one divided operation
+    */
+   @FXML
+   Button oneDividedButton;
+
+   /**
+    * Button for changing sign of value
+    */
+   @FXML
+   Button signButton;
+
+   /**
+    * Button for clearing all elements of calculation
+    */
+   @FXML
+   Button clearButton;
+
+   /**
+    * Button for clearing only value in main label
+    */
+   @FXML
+   Button clearCurrentButton;
+
+   /**
+    * Formatter object for displaying values on label
+    */
+   private DecimalFormat formatter = new DecimalFormat();
+
+   /**
+    * Symbols for correct formatting and displaying values on label
+    */
+   private DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+
+   /**
+    * Function represents listener on pressing action of moving window
+    */
+   @FXML
+   public void movementPressed(MouseEvent mouseEvent) {
+      x = stage.getX() - mouseEvent.getScreenX();
+      y = stage.getY() - mouseEvent.getScreenY();
+   }
+
+   /**
+    * Function represents listener on dragging action of moving window
+    */
+   @FXML
+   public void movementDragged(MouseEvent mouseEvent) {
+      if (stage.getScene().getCursor() != Cursor.N_RESIZE) {
+         stage.setX(mouseEvent.getScreenX() + x);
+         stage.setY(mouseEvent.getScreenY() + y);
+      }
+   }
+
+   /**
+    * Function represents listener on button for closing window
+    */
+   @FXML
+   public void closeWindowButton() {
+      stage.close();
+   }
+
+   /**
+    * Function represents listener on button for extending window on full screen
+    */
+   @FXML
+   public void extendWindowButton() {
+      stage.setMaximized(!stage.isMaximized());
+      resizeFontMainLabel();
+   }
+
+   /**
+    * Function represents listener for buttons with digits for input
+    */
+   @FXML
+   public void digitButton(ActionEvent actionEvent) throws DivisionByZeroException, OverflowException {
+      Button pressed = (Button) actionEvent.getSource();
+      int digit = buttonsWithText.indexOf(pressed); // in the list every button with digit has the same index as digit in this button
+      addToMainLabel(digit);
+   }
+
+   /**
+    * Function represents listener on button for hiding window on task panel
+    */
+   @FXML
+   public void hideWindowButton() {
+      stage.setIconified(true);
+   }
+
+   /**
+    * Function represents listener on button for inputting comma
+    */
+   @FXML
+   public void commaButton() throws OverflowException {
+      if (!isValueFloat) {
+         isValueFloat = true;
+         inputting = true;
+         putComma = true;
+         displayValue(currentValue);
+         putComma = false;
+         inputting = false;
+         replaceValue = false;
+      }
+   }
+
+   /**
+    * Function represents listener on button for clearing only value in main label
+    */
+   @FXML
+   public void clearCurrentButton() throws OverflowException {
+      deleteLastSpecialInHistory();
+      lastSpecialAddedToHistory = null;
+      isNegativeZero = false;
+      isValueFloat = false;
+      displayValue(DEFAULT_VALUE);
+   }
+
+   /**
+    * Function represents listener on button for clearing all elements
+    */
+   @FXML
+   public void clearAllButton() throws OverflowException {
+      setDisableButtons(false);
+      binaryOperation = null;
+      currentValue = DEFAULT_VALUE;
+      lastValue = null;
+      displayValue(DEFAULT_VALUE);
+      historyLabel.setText("");// todo: remove " " symbol
+      calculator.makeHistoryEmpty();
+      isCalculateButtonLast = false;
+      isValueFloat = false;
+      lastSpecialAddedToHistory = null;
+      specialOperation = null;
+      answer = null;
+      isValueFloat = false;
+      resizeFontMainLabel();
+   }
+
+   /**
+    * Function represents listener on backspace button
+    */
+   @FXML
+   public void backSpaceButton() throws DivisionByZeroException, OverflowException {
+      inputting = true;
+      if (putComma) {
+         isNegativeZero = false;
+         putComma = false;
+         displayValue(currentValue);
+      } else if (!replaceValue) {
+         int floatDigits = 0;
+         BigDecimal value = currentValue;
+         if (currentValue.signum() == -1 && currentValue.precision() == 1) { // if value is negative and has only last not zero digit; example -0,0004
+            isNegativeZero = true;
+         }
+         while (value.scale() != 0) {
+            floatDigits++;
+            value = value.movePointRight(1);
+         }
+
+         value = calculator.executeOperation(BinaryOperation.DIVIDE, BigDecimal.TEN, value);
+         value = value.setScale(0, BigDecimal.ROUND_DOWN);
+
+         if (floatDigits != 0) {
+            value = value.movePointLeft(floatDigits - 1);
+            if (floatDigits == 1 && value.scale() == 0) {
+               putComma = true;
             }
+         }
 
-            value = calculator.executeOperation(BinaryOperation.DIVIDE, BigDecimal.TEN, value);
-            value = new BigDecimal(value.toBigInteger());
+         displayValue(value);
+         replaceValue = false;
+      }
+      inputting = true;
+   }
 
-            if (floatDigits != 0) {
-                value = value.movePointLeft(floatDigits - 1);
-            }
-
-            displayValue(value);
-            replaceValue = false;
-        }
-        inputting = true;
-    }
-
-    /**
-     * Function represents listener on button for calculating answer
-     */
-    @FXML
-    public void calculateButton() {
-        specialOperation = null;
-        try {
-            if (binaryOperation != null) {
-                if (isCalculateButtonLast) {
-                    currentValue = calculator.executeOperation(binaryOperation, lastValue, currentValue);
-                    displayValue(currentValue);
-                    replaceValue = true;
-                } else {
-                    calculateAnswer();
-                }
-            }
-            answer = null;
-            historyLabel.setText(" ");
-            calculator.makeHistoryEmpty();
-            isDigitAddedLast = true;
-            lastSpecialAddedToHistory = null;
-            specialOperation = null;
-            isCalculateButtonLast = true;
-            isValueFloat = false;
-        } catch (OverflowException | DivisionByZeroException e) {
-            printException(e);
-        }
-    }
-
-    /**
-     * Function represents listener on button for reading value from memory
-     */
-    @FXML
-    public void mReadButton() {
-
-        deleteLastSpecialInHistory();
-        try {
-            displayValue(calculator.getMemoryValue());
-            replaceValue = true;
-        } catch (OverflowException e) {
-            printException(e);
-        }
-    }
-
-    /**
-     * Function represents listener on button for saving value for memory
-     */
-    @FXML
-    public void mSaveButton() {
-        disableMemoryWork(false);
-        calculator.setMemoryValue(currentValue);
-        replaceValue = true;
-    }
-
-    /**
-     * Function represents listener on button for saving value for memory
-     */
-    @FXML
-    public void mClearButton() {
-        disableMemoryWork(true);
-        calculator.clearMemoryValue();
-    }
-
-    /**
-     * Function represents listener on button for increasing value in memory
-     */
-    @FXML
-    public void mPlusButton() {
-        if (calculator.getMemoryValue() == null) {
-            mSaveButton();
-        } else {
-            calculator.memoryPlus(currentValue);
-            replaceValue = true;
-        }
-    }
-
-    /**
-     * Function represents listener on button for reducing value in memory
-     */
-    @FXML
-    public void mMinusButton() {
-        if (calculator.getMemoryValue() == null) {
-            mSaveButton();
-        } else {
-            calculator.memoryMinus(currentValue);
-            replaceValue = true;
-        }
-    }
-
-    /**
-     * Function for disabling or unabling buttons which make work with memory not allowed
-     *
-     * @param isDisable make buttons disable or unable
-     */
-    private void disableMemoryWork(boolean isDisable) {
-        mRead.disableProperty().setValue(isDisable);
-        mClear.disableProperty().setValue(isDisable);
-    }
-
-    /**
-     * Function for executing special operation
-     *
-     * @param actionEvent event which was fired
-     */
-    @FXML
-    private void executeSpecialOperation(ActionEvent actionEvent) {
-        Button button = (Button) actionEvent.getSource();
-        SpecialOperation specialOperation = (SpecialOperation) operationMap.get(button);
-
-        isOperationSpecial = true;
-
-        if (!(specialOperation == NEGATE && lastSpecialAddedToHistory == null)) {
-            addToHistoryLabel(specialOperation);
-        }
-        this.specialOperation = specialOperation;
-
-        try {
-            BigDecimal result;
-            if (specialOperation == PERCENT) {
-                result = calculator.executeOperation(specialOperation, currentValue, lastValue);
+   /**
+    * Function represents listener on button for calculating answer
+    */
+   @FXML
+   public void calculateButton() {
+      specialOperation = null;
+      try {
+         if (binaryOperation != null) {
+            if (isCalculateButtonLast) {
+               currentValue = calculator.executeOperation(binaryOperation, lastValue, currentValue);
+               displayValue(currentValue);
+               replaceValue = true;
             } else {
-                result = calculator.executeOperation(specialOperation, currentValue);
+               calculateAnswer();
             }
-            displayValue(result);
-        } catch (OverflowException | DivisionByZeroException | NegativeValueForSqrtException e) {
+         }
+         answer = null;
+         historyLabel.setText(""); // todo: remove " " symbol
+         calculator.makeHistoryEmpty();
+         isDigitAddedLast = true;
+         lastSpecialAddedToHistory = null;
+         specialOperation = null;
+         isCalculateButtonLast = true;
+         isValueFloat = false;
+      } catch (OverflowException | DivisionByZeroException e) {
+         printException(e);
+      }
+   }
+
+   /**
+    * Function represents listener on button for reading value from memory
+    */
+   @FXML
+   public void mReadButton() {
+      deleteLastSpecialInHistory();
+      try {
+         displayValue(calculator.getMemoryValue());
+         replaceValue = true;
+      } catch (OverflowException e) {
+         printException(e);
+      }
+   }
+
+   /**
+    * Function represents listener on button for saving value for memory
+    */
+   @FXML
+   public void mSaveButton() {
+      disableMemoryWork(false);
+      calculator.setMemoryValue(currentValue);
+      replaceValue = true;
+   }
+
+   /**
+    * Function represents listener on button for saving value for memory
+    */
+   @FXML
+   public void mClearButton() {
+      disableMemoryWork(true);
+      calculator.clearMemoryValue();
+   }
+
+   /**
+    * Function represents listener on button for increasing value in memory
+    */
+   @FXML
+   public void mPlusButton() {
+      if (calculator.getMemoryValue() == null) {
+         mSaveButton();
+      } else {
+         calculator.memoryPlus(currentValue);
+         replaceValue = true;
+      }
+   }
+
+   /**
+    * Function represents listener on button for reducing value in memory
+    */
+   @FXML
+   public void mMinusButton() {
+      if (calculator.getMemoryValue() == null) {
+         mSaveButton();
+      } else {
+         calculator.memoryMinus(currentValue);
+         replaceValue = true;
+      }
+   }
+
+   /**
+    * Function for disabling or unabling buttons which make work with memory not allowed
+    *
+    * @param isDisable make buttons disable or unable
+    */
+   private void disableMemoryWork(boolean isDisable) {
+      mRead.disableProperty().setValue(isDisable);
+      mClear.disableProperty().setValue(isDisable);
+   }
+
+   /**
+    * Function for executing special operation
+    *
+    * @param actionEvent event which was fired
+    */
+   @FXML
+   private void executeSpecialOperation(ActionEvent actionEvent) {
+      Button button = (Button) actionEvent.getSource();
+      SpecialOperation specialOperation = (SpecialOperation) operationMap.get(button);
+
+      if (!(specialOperation == NEGATE && lastSpecialAddedToHistory == null)) {
+         addToHistoryLabel(specialOperation);
+      }
+      this.specialOperation = specialOperation;
+
+      try {
+         BigDecimal result;
+         if (specialOperation == PERCENT) {
+            result = calculator.executeOperation(specialOperation, currentValue, lastValue);
+         } else {
+            result = calculator.executeOperation(specialOperation, currentValue);
+         }
+         displayValue(result);
+      } catch (OverflowException | DivisionByZeroException | NegativeValueForSqrtException e) {
+         printException(e);
+      }
+
+      if (specialOperation != NEGATE) {
+         replaceValue = true;
+      }
+      this.specialOperation = null;
+   }
+
+   /**
+    * Function disables buttons
+    * Needed when exception was thrown
+    *
+    * @param val defines disable buttons or not
+    */
+   private void setDisableButtons(boolean val) {
+      percentButton.setDisable(val);
+      sqrButton.setDisable(val);
+      sqrtButton.setDisable(val);
+      oneDividedButton.setDisable(val);
+      divideButton.setDisable(val);
+      multiplyButton.setDisable(val);
+      minusButton.setDisable(val);
+      plusButton.setDisable(val);
+      signButton.setDisable(val);
+      mMinus.setDisable(val);
+      mSave.setDisable(val);
+      mPlus.setDisable(val);
+      if (!mRead.isDisable() && !mClear.isDisable()) {
+         mRead.setDisable(val);
+         mClear.setDisable(val);
+      }
+
+   }
+
+   /**
+    * Function for display exception in a proper way
+    *
+    * @param e exception with message will be displayed
+    */
+   private void printException(Exception e) {
+      String toMainLabel;
+      if (e instanceof DivisionByZeroException) {
+         toMainLabel = divisionByZeroMsg;
+      } else if (e instanceof NegativeValueForSqrtException) {
+         toMainLabel = negativeValueForSqrtExceptionMsg;
+      } else if (e instanceof OverflowException) {
+         toMainLabel = overflowExceptionMsg;
+      } else {
+         toMainLabel = "Ошибка";
+      }
+
+      String history = historyLabel.getText();
+      try {
+         clearAllButton();
+      } catch (OverflowException r) {
+         r.printStackTrace();
+      }
+
+      mainLabel.setText(toMainLabel);
+      replaceValue = true;
+      resizeFontMainLabel();
+      setDisableButtons(true);
+      historyLabel.setText(history);
+   }
+
+   /**
+    * Function for executing binary operation
+    *
+    * @param actionEvent event which was fired
+    */
+   @FXML
+   private void executeBinaryOperation(ActionEvent actionEvent) {
+      Button button = (Button) actionEvent.getSource();
+      BinaryOperation binaryOperation = (BinaryOperation) operationMap.get(button);
+
+      specialOperation = null;
+      addToHistoryLabel(binaryOperation);
+      if (!isDigitAddedLast) {
+         this.binaryOperation = binaryOperation;
+         return;
+      }
+      if (lastValue == null || isCalculateButtonLast) {
+         replaceValue = true;
+         lastValue = currentValue;
+      } else {
+         try {
+            calculateAnswer();
+         } catch (OverflowException | DivisionByZeroException e) {
             printException(e);
-        }
+         }
+      }
 
-        if (specialOperation != NEGATE) {
-            replaceValue = true;
-        }
-        this.specialOperation = null;
-    }
+      this.binaryOperation = binaryOperation;
+      lastSpecialAddedToHistory = null;
+      isDigitAddedLast = false;
+      isCalculateButtonLast = false;
+   }
 
-    /**
-     * Function disables buttons
-     * Needed when exception was thrown
-     *
-     * @param val defines disable buttons or not
-     */
-    private void setDisableButtons(boolean val) {
-        percentButton.setDisable(val);
-        sqrButton.setDisable(val);
-        sqrtButton.setDisable(val);
-        oneDividedButton.setDisable(val);
-        divideButton.setDisable(val);
-        multiplyButton.setDisable(val);
-        minusButton.setDisable(val);
-        plusButton.setDisable(val);
-        signButton.setDisable(val);
-        mMinus.setDisable(val);
-        mSave.setDisable(val);
-        mPlus.setDisable(val);
-        if (!mRead.isDisable() && !mClear.isDisable()) {
-            mRead.setDisable(val);
-            mClear.setDisable(val);
-        }
+   /**
+    * Function for calculating answer of binary operation
+    */
+   private void calculateAnswer() throws OverflowException, DivisionByZeroException {
+      if (answer == null) {
+         answer = lastValue;
+      }
+      answer = calculator.executeOperation(binaryOperation, currentValue, answer);
+      lastValue = currentValue;
+      displayValue(answer);
+      replaceValue = true;
+   }
 
-    }
+   /**
+    * Function removes result of last special operation added to history
+    * Needed for replacing value in history
+    */
+   private void deleteLastSpecialInHistory() {
+      int historySize = calculator.getHistorySize();
+      boolean inLoop = false;
+      for (int i = historySize - 1; (i >= 0) && (calculator.getFromHistory(i) instanceof SpecialOperation); i--) {
+         inLoop = true;
+         calculator.deleteLastInHistory();
+      }
+      if (inLoop) {
+         calculator.deleteLastInHistory();
+      }
+      showHistory();
+   }
 
-    /**
-     * Function for display exception in a proper way
-     *
-     * @param e exception with message will be displayed
-     */
-    private void printException(Exception e) {
-        String toMainLabel;
-        if (e instanceof DivisionByZeroException) {
-            toMainLabel = divisionByZeroMsg;
-        } else if (e instanceof NegativeValueForSqrtException) {
-            toMainLabel = negativeValueForSqrtExceptionMsg;
-        } else if (e instanceof OverflowException) {
-            toMainLabel = overflowExceptionMsg;
-        } else {
-            toMainLabel = "Ошибка";
-        }
+   /**
+    * Function displays answer of calculations on main label of application
+    *
+    * @param val result of calculation will be displayed
+    */
+   private void displayValue(BigDecimal val) throws OverflowException {
+      if ((val.compareTo(MAX_VALUE) > 0 || val.compareTo(MAX_VALUE) == 0 || val.compareTo(MIN_VALUE) < 0)
+              || (val.compareTo(MIN_POSITIVE_VALUE) < 0 && val.compareTo(BigDecimal.ZERO) > 0)
+              || (val.compareTo(MAX_NEGATIVE_VALUE) > 0 && val.compareTo(BigDecimal.ZERO) < 0)) {
+         throw new OverflowException();
+      }
 
-        String history = historyLabel.getText();
-        try {
-            clearAllButton();
-        } catch (OverflowException r) {
-            r.printStackTrace();
-        }
+      currentValue = val;
+      mainLabel.setText(makeString(val));
+      isDigitAddedLast = true;
+      resizeFontMainLabel();
+   }
 
-        mainLabel.setText(toMainLabel);
-        replaceValue = true;
-        resizeFontMainLabel();
-        setDisableButtons(true);
-        historyLabel.setText(history);
-    }
 
-    /**
-     * Function for executing binary operation
-     *
-     * @param actionEvent event which was fired
-     */
-    @FXML
-    private void executeBinaryOperation(ActionEvent actionEvent) {
-        Button button = (Button) actionEvent.getSource();
-        BinaryOperation binaryOperation = (BinaryOperation) operationMap.get(button);
+   /**
+    * Function adds digits to number which is in main label
+    *
+    * @param digit digit will be added to number on display
+    */
+   private void addToMainLabel(int digit) throws DivisionByZeroException, OverflowException {
+      putComma = false;
+      inputting = true;
+      if (replaceValue) {
+         isValueFloat = false;
+         currentValue = DEFAULT_VALUE;
+      }
 
-        specialOperation = null;
-        isOperationSpecial = false;
-        addToHistoryLabel(binaryOperation);
-        if (!isDigitAddedLast) {
-            this.binaryOperation = binaryOperation;
-            return;
-        }
-        if (lastValue == null || isCalculateButtonLast) {
-            replaceValue = true;
-            lastValue = currentValue;
-        } else {
-            try {
-                calculateAnswer();
-            } catch (OverflowException | DivisionByZeroException e) {
-                printException(e);
+      if ((currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == MAX_DIGITS_IN_NUMBER)
+              || !currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == MAX_DIGITS_IN_NUMBER - 1) {
+         inputting = false;
+         return; // number too long
+      }
+      setDisableButtons(false);
+      if (mainLabel.getText().equals(overflowExceptionMsg)) {
+         clearAllButton();
+      }
+
+      if (lastSpecialAddedToHistory != null) {
+         deleteLastSpecialInHistory();
+      }
+
+      BigDecimal newCurrentValue;
+      BinaryOperation operation;
+
+      if (currentValue.compareTo(BigDecimal.ZERO) == -1) {
+         operation = BinaryOperation.MINUS;
+      } else {
+         operation = BinaryOperation.PLUS;
+      }
+
+      if (!isValueFloat) {
+         newCurrentValue = calculator.executeOperation(BinaryOperation.MULTIPLY, currentValue, BigDecimal.TEN);
+         newCurrentValue = calculator.executeOperation(operation, new BigDecimal(digit), newCurrentValue);
+      } else {
+         BigDecimal newDigit = new BigDecimal(digit);
+         newCurrentValue = currentValue;
+
+         if (!isInteger(newCurrentValue)) {
+            newDigit = newDigit.movePointLeft(1);
+         }
+
+         newDigit = newDigit.movePointLeft(newCurrentValue.scale());
+
+         if (digit == 0) {
+            int newScale = newCurrentValue.scale() + 1;
+            newCurrentValue = newCurrentValue.setScale(newScale, BigDecimal.ROUND_DOWN);
+         } else {
+            if (isInteger(newCurrentValue) || newCurrentValue.compareTo(BigDecimal.ZERO) == 0) {
+               newDigit = newDigit.movePointLeft(1);
             }
-        }
 
-        this.binaryOperation = binaryOperation;
-        lastSpecialAddedToHistory = null;
-        isDigitAddedLast = false;
-        isCalculateButtonLast = false;
-    }
+            newCurrentValue = calculator.executeOperation(operation, currentValue, newDigit);
+            if (operation == BinaryOperation.MINUS) {
+               newCurrentValue = newCurrentValue.negate();
+            }
+         }
+      }
+      displayValue(newCurrentValue);
+      inputting = false;
+      replaceValue = false;
+      isDigitAddedLast = true;
+   }
 
-    /**
-     * Function for calculating answer of binary operation
-     */
-    private void calculateAnswer() throws OverflowException, DivisionByZeroException {
-        if (answer == null) {
-            answer = lastValue;
-        }
-        answer = calculator.executeOperation(binaryOperation, currentValue, answer);
-        lastValue = currentValue;
-        displayValue(answer);
-        replaceValue = true;
-    }
+   /**
+    * {@see https://stackoverflow.com/questions/1078953/check-if-bigdecimal-is-integer-value}
+    *
+    * Function check is value has integer type
+    *
+    * @param bd value will be checked
+    * @return is it integer or not
+    */
+   private boolean isInteger(BigDecimal bd) {
+      return bd.signum() == 0 || bd.scale() <= 0 || bd.stripTrailingZeros().scale() <= 0;
+   }
 
-    /**
-     * Function removes result of last special operation added to history
-     * Needed for replacing value in history
-     */
-    private void deleteLastSpecialInHistory() {
-        int historySize = calculator.getHistorySize();
-        boolean inLoop = false;
-        for (int i = historySize - 1; i >= 0 && calculator.getFromHistory(i) instanceof SpecialOperation; i--) {
-            inLoop = true;
+   /**
+    * Function adds numbers and operation to history
+    *
+    * @param operation expression with operation and numbers
+    */
+   private void addToHistoryLabel(Operation operation) {
+      if (operation instanceof BinaryOperation) {
+         if (!isDigitAddedLast && lastValue != null) {
             calculator.deleteLastInHistory();
-        }
-        if (inLoop) {
-            calculator.deleteLastInHistory();
-        }
-        showHistory();
-    }
-
-    /**
-     * Function displays answer of calculations on main label of application
-     *
-     * @param val result of calculation will be displayed
-     */
-    private void displayValue(BigDecimal val) throws OverflowException {
-        if ((val.compareTo(MAX_VALUE) == 1 || val.compareTo(MAX_VALUE) == 0 || val.compareTo(MIN_VALUE) == -1)
-                || (val.compareTo(MIN_POSITIVE_VALUE) == -1 && val.compareTo(BigDecimal.ZERO) == 1)
-                || (val.compareTo(MAX_NEGATIVE_VALUE) == 1 && val.compareTo(BigDecimal.ZERO) == -1)) {
-            throw new OverflowException();
-        }
-
-        String toMainLabel;
-        String inMainLabel = mainLabel.getText();
-        if (specialOperation == NEGATE) {
-            String text = mainLabel.getText();
-            toMainLabel = text.startsWith("-") ? text.substring(1) : "-" + text;
-        } else if (isValueFloat && inputting) {
-            toMainLabel = makeString(val);
-
-            if (inMainLabel.contains(FLOAT_POINT)) {
-                if (currentValue.scale() == 0 && val.scale() == 0) {
-                    toMainLabel = inMainLabel.replace(FLOAT_POINT, "");
-                    isValueFloat = false;
-                } else if (currentValue.scale() == 1 && val.scale() == 0) {
-                    toMainLabel = inMainLabel.substring(0, inMainLabel.length() - 1);
-                }
-            } else {
-                toMainLabel = inMainLabel + FLOAT_POINT;
-            }
-        } else {
-            if (isInteger(val) && val.scale() != 0) {
-                val = new BigDecimal(val.toBigInteger());
-            }
-            toMainLabel = makeString(val);
-        }
-
-        currentValue = val;
-        mainLabel.setText(toMainLabel);
-        isDigitAddedLast = true;
-        resizeFontMainLabel();
-    }
-
-    private boolean inputting = false;
-
-    /**
-     * Function adds digits to number which is in main label
-     *
-     * @param digit digit will be added to number on display
-     */
-    private void addToMainLabel(int digit) throws DivisionByZeroException, OverflowException {
-        if (replaceValue) {
-            isValueFloat = false;
-            currentValue = DEFAULT_VALUE;
-        }
-        inputting = true;
-        if ((currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 17) ||
-                !currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == 16) {
-            inputting = false;
-            return;            // number too long
-        }
-        setDisableButtons(false);
-        if (mainLabel.getText().equals(overflowExceptionMsg)) {
-            clearAllButton();
-        }
-
-        if (lastSpecialAddedToHistory != null) {
-            deleteLastSpecialInHistory();
-        }
-
-        BigDecimal newCurrentValue;
-        BinaryOperation operation;
-
-        if (currentValue.compareTo(BigDecimal.ZERO) == -1) {
-            operation = BinaryOperation.MINUS;
-        } else {
-            operation = BinaryOperation.PLUS;
-        }
-        if (!isValueFloat) {
-            newCurrentValue = calculator.executeOperation(BinaryOperation.MULTIPLY, currentValue, BigDecimal.TEN);
-            newCurrentValue = calculator.executeOperation(operation, new BigDecimal(digit), newCurrentValue);
-        } else {
-            BigDecimal newDigit = new BigDecimal(digit);
-            newCurrentValue = currentValue;
-
-            if (!isInteger(newCurrentValue)) {
-                newDigit = newDigit.movePointLeft(1);
-            }
-
-            newDigit = newDigit.movePointLeft(newCurrentValue.scale());
-
-            if (digit == 0) {
-                int newScale = newCurrentValue.scale() + 1;
-                newCurrentValue = newCurrentValue.setScale(newScale, BigDecimal.ROUND_DOWN);
-            } else {
-                if (isInteger(newCurrentValue) || newCurrentValue.compareTo(BigDecimal.ZERO) == 0) {
-                    newDigit = newDigit.movePointLeft(1);
-                }
-
-                newCurrentValue = calculator.executeOperation(operation, currentValue, newDigit);
-                if (operation == BinaryOperation.MINUS) {
-                    newCurrentValue = newCurrentValue.negate();
-                }
-            }
-        }
-        displayValue(newCurrentValue);
-        inputting = false;
-        replaceValue = false;
-        isDigitAddedLast = true;
-    }
-
-    /**
-     * Function check is value has integer type
-     *
-     * @param bd value will be checked
-     * @return is it integer or not
-     */
-    private boolean isInteger(BigDecimal bd) {
-        return bd.signum() == 0 || bd.scale() <= 0 || bd.stripTrailingZeros().scale() <= 0;
-    }
-
-    /**
-     * Function adds numbers and operation to history
-     *
-     * @param operation expression with operation and numbers
-     */
-    private void addToHistoryLabel(Operation operation) {
-
-        if (operation instanceof BinaryOperation) {
-            if (!isDigitAddedLast && lastValue != null) {
-                calculator.deleteLastInHistory();
-            } else {
-                if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
-                    calculator.addToHistory(currentValue);
-                }
-                lastSpecialAddedToHistory = null;
-            }
-        } else {
+         } else {
             if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
-                calculator.addToHistory(currentValue);
+               calculator.addToHistory(currentValue);
             }
-            lastSpecialAddedToHistory = (SpecialOperation) operation;
-        }
-        calculator.addToHistory(operation);
-        showHistory();
-    }
+            lastSpecialAddedToHistory = null;
+         }
+      } else {
+         if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
+            calculator.addToHistory(currentValue);
+         }
+         lastSpecialAddedToHistory = (SpecialOperation) operation;
+      }
+      calculator.addToHistory(operation);
+      showHistory();
+   }
 
-    private void showHistory() {
-        StringBuilder history = new StringBuilder("");
-        int historySize = calculator.getHistorySize();
-        for (int i = 0; i < historySize; i++) {
-            Object obj = calculator.getFromHistory(i);
-            String toHistory = null;
-            if (obj instanceof BigDecimal) {
-                toHistory = makeString((BigDecimal) obj).replace(BIG_NUMBER_SEPARATOR, "");
+   /**
+    * Function fills history label
+    */
+   private void showHistory() {
+      StringBuilder history = new StringBuilder("");
+      int historySize = calculator.getHistorySize();
 
-                while (i + 1 < historySize && calculator.getFromHistory(i + 1) instanceof SpecialOperation) { // for nested operations
-                    toHistory = ((SpecialOperation) calculator.getFromHistory(i + 1)).makeOperationSign(toHistory);
-                    i++;
-                }
-            } else if (obj instanceof BinaryOperation) {
-                toHistory = ((BinaryOperation) obj).operationSign;
+      for (int i = 0; i < historySize; i++) {
+         Object obj = calculator.getFromHistory(i);
+
+         String toHistory = null;
+         if (obj instanceof BigDecimal) {
+            toHistory = makeString((BigDecimal) obj).replace(BIG_NUMBER_SEPARATOR, ""); // history needs the same formatting but with out group separating
+
+            for (int j = i; j + 1 < historySize; j++) { // todo: make this easier
+               Object sp = calculator.getFromHistory(j + 1);
+
+               if(!(sp instanceof SpecialOperation)){ // for nested operations
+                  break;
+               }
+               toHistory = specialOperationSign((SpecialOperation) sp, toHistory);
             }
 
-            if (toHistory != null) {
-                toHistory += " ";
-                history.append(toHistory);
+         } else if (obj instanceof BinaryOperation) {
+            toHistory = binaryOperationStringMap.get(obj);
+         }
+
+         if (toHistory != null) {
+            toHistory += " ";
+            history.append(toHistory);
+         }
+      }
+      historyLabel.setText(history.toString());
+   }
+
+   /**
+    * Function resizes font in main label after resizing window or adding new digits to number
+    */
+   private void resizeFontMainLabel() {
+      mainLabel.setFont(fontForMainLabel);
+      double textWidth = computeTextWidth(fontForMainLabel, mainLabel.getText());
+      double labelWidth = mainLabel.getWidth();
+      double additional = 0.05;
+      if (labelWidth < textWidth) {
+         double scale = textWidth / labelWidth + additional;
+         mainLabel.setFont(new Font(fontForMainLabel.getName(), fontForMainLabel.getSize() / scale));
+      }
+   }
+
+   /**
+    * Function initializes stage and prepares objects for correct working of application
+    *
+    * @param primaryStage main stage of application
+    */
+   public void setStageAndInitialize(Stage primaryStage) {
+      // fill map with special operations
+      operationMap.put(sqrButton, SQR);
+      operationMap.put(sqrtButton, SQRT);
+      operationMap.put(oneDividedButton, ONE_DIVIDED);
+      operationMap.put(signButton, NEGATE);
+      operationMap.put(percentButton, PERCENT);
+
+      // fill map with binary operations
+      operationMap.put(plusButton, BinaryOperation.PLUS);
+      operationMap.put(minusButton, BinaryOperation.MINUS);
+      operationMap.put(multiplyButton, BinaryOperation.MULTIPLY);
+      operationMap.put(divideButton, BinaryOperation.DIVIDE);
+
+
+      // initializing lists with buttons
+      buttonsWithImage = Arrays.asList(multiplyButton, divideButton, backSpaceButton, signButton,
+              sqrButton, sqrtButton, percentButton, oneDividedButton);
+
+      buttonsWithText = Arrays.asList(zeroButton, oneButton, twoButton, threeButton, fourButton, fiveButton, sixButton,
+              sevenButton, eightButton, nineButton, commaButton, calculateButton, clearButton, clearCurrentButton,
+              plusButton, minusButton);
+
+      // resize window listeners
+      ResizeListener r = new ResizeListener(primaryStage);
+      Scene scene = primaryStage.getScene();
+      scene.setOnMouseMoved(r);
+      scene.setOnMousePressed(r);
+      scene.setOnMouseDragged(r);
+
+      //mapping keys and their button analogs
+      keyCodeButtonMap.put(NUMPAD0,zeroButton);
+      keyCodeButtonMap.put(DIGIT0,zeroButton);
+      keyCodeButtonMap.put(NUMPAD1,oneButton);
+      keyCodeButtonMap.put(DIGIT1,oneButton);
+      keyCodeButtonMap.put(NUMPAD2,twoButton);
+      keyCodeButtonMap.put(DIGIT2,twoButton);
+      keyCodeButtonMap.put(NUMPAD3,threeButton);
+      keyCodeButtonMap.put(DIGIT3,threeButton);
+      keyCodeButtonMap.put(NUMPAD4,fourButton);
+      keyCodeButtonMap.put(DIGIT4,fourButton);
+      keyCodeButtonMap.put(NUMPAD5,fiveButton);
+      keyCodeButtonMap.put(DIGIT5,fiveButton);
+      keyCodeButtonMap.put(NUMPAD6,sixButton);
+      keyCodeButtonMap.put(DIGIT6,sixButton);
+      keyCodeButtonMap.put(NUMPAD7,sevenButton);
+      keyCodeButtonMap.put(DIGIT7,sevenButton);
+      keyCodeButtonMap.put(NUMPAD8,eightButton);
+      keyCodeButtonMap.put(DIGIT8,eightButton);
+      keyCodeButtonMap.put(NUMPAD9,nineButton);
+      keyCodeButtonMap.put(DIGIT9,nineButton);
+      keyCodeButtonMap.put(SUBTRACT,minusButton);
+      keyCodeButtonMap.put(MINUS,minusButton);
+      keyCodeButtonMap.put(PLUS,plusButton);
+      keyCodeButtonMap.put(ADD,plusButton);
+      keyCodeButtonMap.put(MULTIPLY,multiplyButton);
+      keyCodeButtonMap.put(DIVIDE,divideButton);
+      keyCodeButtonMap.put(EQUALS,calculateButton);
+      keyCodeButtonMap.put(COMMA,commaButton);
+
+
+      // keyboard buttons listeners
+      stage = primaryStage;
+      stage.getScene().setOnKeyPressed(event -> {
+         KeyCode keyCode = event.getCode();
+         Button button = keyCodeButtonMap.get(keyCode); // todo: replace if else with map
+         if (button != null) {
+            button.fire();
+            button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), true);
+         }
+      });
+
+      stage.getScene().setOnKeyReleased(event -> {
+         List<Button> buttons = new ArrayList<>(buttonsWithImage);
+         buttons.addAll(buttonsWithText);
+         for (Button button : buttons) {
+            button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), false);
+         }
+      });
+
+      // resize content of buttons listener
+      stage.widthProperty().addListener(
+              (observable, oldValue, newValue) -> {
+                 resizeFontButtons();
+                 resizeFontMainLabel();
+              });
+      stage.heightProperty().addListener((
+              (observable, oldValue, newValue) -> {
+                 resizeFontButtons();
+                 resizeFontMainLabel();
+              }));
+
+      // mapping binary operations with symbols
+      binaryOperationStringMap.put(BinaryOperation.PLUS, "+");
+      binaryOperationStringMap.put(BinaryOperation.MINUS, "-");
+      binaryOperationStringMap.put(BinaryOperation.MULTIPLY, "×");
+      binaryOperationStringMap.put(BinaryOperation.DIVIDE, "÷");
+
+      // Get the pattern for the default locale.
+      Locale def = Locale.getDefault(Locale.Category.FORMAT);
+      LocaleProviderAdapter adapter = LocaleProviderAdapter.getAdapter(NumberFormatProvider.class, def);
+      if (!(adapter instanceof ResourceBundleBasedAdapter)) {
+         adapter = LocaleProviderAdapter.getResourceBundleBased();
+      }
+      String[] all = adapter.getLocaleResources(def).getNumberPatterns();
+      defaultPattern = all[0];
+   }
+
+   /**
+    * Function increases or reduces content of buttons after resizing window
+    */
+   private void resizeFontButtons() {
+      List<Button> buttons = new ArrayList<>(buttonsWithImage);
+      buttons.addAll(buttonsWithText);
+      String imageStyle;
+      String textStyle;
+      if (stage.getHeight() > contentButtonLimitHeight && stage.getWidth() > contentButtonLimitWidth) { // todo: remove magic constants
+         imageStyle = extendedBackgroundSize;
+         textStyle = extendedFontSize;
+      } else {
+         imageStyle = "";
+         textStyle = "";
+      }
+      for (Button button : buttonsWithImage) {
+         button.setStyle(imageStyle);
+      }
+      for (Button button : buttonsWithText) {
+         button.setStyle(textStyle);
+      }
+
+   }
+
+   /**
+    * Function for getting wight of String some special font
+    *
+    * @param font Font of text
+    * @param text wight function calculates for
+    * @return wight
+    */
+   private double computeTextWidth(Font font, String text) {
+      helper.setText(text);
+      helper.setFont(font);
+      return helper.getLayoutBounds().getWidth();
+   }
+
+   /**
+    * {@see https://stackoverflow.com/questions/18828377/biginteger-count-the-number-of-decimal-digits-in-a-scalable-method}
+    *
+    * Function counts digits in BigInteger value
+    *
+    * @param number value count of digits will be counted for
+    * @return count of digits in {@code number} value
+    */
+   private int getDigitCount(BigInteger number) {
+      number = number.abs();
+      double factor = Math.log(2) / Math.log(10);
+      int digitCount = (int) (factor * number.bitLength() + 1);
+      if (BigInteger.TEN.pow(digitCount - 1).compareTo(number) > 0) {
+         return digitCount - 1;
+      }
+      return digitCount;
+   }
+
+   /**
+    * Function counts zeros at the beginning of value
+    *
+    * @param number value for counting
+    * @return count of zeros
+    */
+   private static int zeroStartCounter(BigDecimal number) {
+      int zeroCount = 0;
+      while (number.setScale(0, RoundingMode.DOWN).signum() == 0 && number.compareTo(BigDecimal.ZERO) != 0) {
+         zeroCount++;
+         number = number.movePointRight(1);
+      }
+      return zeroCount;
+   }
+
+   /**
+    * Function for converting {@code BigDecimal} value to a {@code String} value for displaying to user
+    *
+    * @param val number which have to be displayed
+    * @return String which represents number for user
+    * @throws NullPointerException If param {@code val} is empty
+    */
+   private String makeString(BigDecimal val) throws ArithmeticException {
+      String result;
+      String pattern = defaultPattern;
+      String exponentialSymbolSign = SYMBOL_EXP;
+      symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
+      symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
+
+      int minFractDigits = 0;
+      int maxFractDigits = MAX_DIGITS_IN_NUMBER - 1;
+
+      if (specialOperation == NEGATE && isValueFloat) {
+         if (val.signum() == 0) {
+            if (isNegativeZero) {
+               isNegativeZero = false;
+               pattern = "";
+            } else {
+               isNegativeZero = true;
+               pattern = "-";
             }
-        }
-        historyLabel.setText(history.toString());
-    }
+         }
 
-    /**
-     * Function resizes font in main label after resizing window or adding new digits to number
-     */
-    private void resizeFontMainLabel() {
-        mainLabel.setFont(fontForMainLabel);
-        double textWidth = computeTextWidth(mainLabel.getFont(), mainLabel.getText());
-        double labelWidth = mainLabel.getWidth();
-        double additional = 0.05;
-        if (labelWidth < textWidth) {
-            double scale = textWidth / labelWidth + additional;
-            mainLabel.setFont(new Font(fontForMainLabel.getName(), mainLabel.getFont().getSize() / scale));
-        }
-    }
+         minFractDigits = val.scale();
+         pattern += "#.";
+      } else if (inputting && isValueFloat) {
+         if (putComma) {
+            pattern = "#.";
+         } else if (val.scale() == 0) {
+            isValueFloat = false;
+         } else {
+            minFractDigits = val.scale();
+         }
 
-    /**
-     * Function initializes stage and prepares objects for correct working of application
-     *
-     * @param primaryStage main stage of application
-     */
-    public void setStageAndInitialize(Stage primaryStage) {
-        // fill map with special operations
-        operationMap.put(sqrButton, SQR);
-        operationMap.put(sqrtButton, SQRT);
-        operationMap.put(oneDividedButton, ONE_DIVIDED);
-        operationMap.put(signButton, NEGATE);
-        operationMap.put(percentButton, PERCENT);
-
-        // fill map with binary operations
-        operationMap.put(plusButton, BinaryOperation.PLUS);
-        operationMap.put(minusButton, BinaryOperation.MINUS);
-        operationMap.put(multiplyButton, BinaryOperation.MULTIPLY);
-        operationMap.put(divideButton, BinaryOperation.DIVIDE);
+         if (isNegativeZero && !isValueFloat) {
+            pattern = "-" + pattern;
+         }
+      } else if (val.abs().compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) > 0
+              || (val.abs().compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) < 0 && val.compareTo(BigDecimal.ZERO) != 0)
+              || (val.stripTrailingZeros().precision() >= MAX_DIGITS_IN_NUMBER - MAX_COUNT_OF_FIRST_ZEROS - 1 && zeroStartCounter(val) >= MAX_COUNT_OF_FIRST_ZEROS)) {
 
 
-        // initializing lists with buttons
-        buttonsWithImage = Arrays.asList(multiplyButton, divideButton, backSpaceButton, signButton,
-                sqrButton, sqrtButton, percentButton, oneDividedButton);
-
-        buttonsWithText = Arrays.asList(zeroButton, oneButton, twoButton, threeButton, fourButton, fiveButton, sixButton,
-                sevenButton, eightButton, nineButton, commaButton, calculateButton, clearButton, clearCurrentButton,
-                plusButton, minusButton);
-
-        // resize window listeners
-        ResizeListener r = new ResizeListener(primaryStage);
-        Scene scene = primaryStage.getScene();
-        scene.setOnMouseMoved(r);
-        scene.setOnMousePressed(r);
-        scene.setOnMouseDragged(r);
-
-        // keyboard buttons listeners
-        stage = primaryStage;
-        stage.getScene().setOnKeyPressed(event -> {
-            Button button = null;
-            KeyCode keyCode = event.getCode();
-            if (keyCode == NUMPAD0 || keyCode == DIGIT0) {
-                button = zeroButton;
-            } else if (keyCode == NUMPAD1 || keyCode == DIGIT1) {
-                button = oneButton;
-            } else if (keyCode == NUMPAD2 || keyCode == DIGIT2) {
-                button = twoButton;
-            } else if (keyCode == NUMPAD3 || keyCode == DIGIT3) {
-                button = threeButton;
-            } else if (keyCode == NUMPAD4 || keyCode == DIGIT4) {
-                button = fourButton;
-            } else if (keyCode == NUMPAD5 || keyCode == DIGIT5) {
-                button = fiveButton;
-            } else if (keyCode == NUMPAD6 || keyCode == DIGIT6) {
-                button = sixButton;
-            } else if (keyCode == NUMPAD7 || keyCode == DIGIT7) {
-                button = sevenButton;
-            } else if (keyCode == NUMPAD8 || keyCode == DIGIT8) {
-                button = eightButton;
-            } else if (keyCode == NUMPAD9 || keyCode == DIGIT9) {
-                button = nineButton;
-            } else if (keyCode == SUBTRACT || keyCode == KeyCode.MINUS) {
-                button = minusButton;
-            } else if (keyCode == ADD || keyCode == KeyCode.PLUS) {
-                button = plusButton;
-            } else if (keyCode == KeyCode.MULTIPLY) {
-                button = multiplyButton;
-            } else if (keyCode == KeyCode.DIVIDE) {
-                button = divideButton;
-            } else if (keyCode == EQUALS) {
-                button = calculateButton;
-            } else if (keyCode == BACK_SPACE) {
-                button = backSpaceButton;
-            } else if (keyCode == COMMA) {
-                button = commaButton;
-            }
-            if (button != null) {
-                button.fire();
-                button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), true);
-            }
-        });
-
-        stage.getScene().setOnKeyReleased(event -> {
-            List<Button> buttons = new ArrayList<>(buttonsWithImage);
-            buttons.addAll(buttonsWithText);
-            for (Button button : buttons) {
-                button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), false);
-            }
-        });
-
-        // resize content of buttons listener
-        stage.widthProperty().addListener((
-                (observable, oldValue, newValue) -> {
-                    resizeFontButtons();
-                    resizeFontMainLabel();
-                }));
-        stage.heightProperty().addListener((
-                (observable, oldValue, newValue) -> {
-                    resizeFontButtons();
-                    resizeFontMainLabel();
-                }));
-    }
-
-    /**
-     * Function increases or reduces content of buttons after resizing window
-     */
-    private void resizeFontButtons() {
-        List<Button> buttons = new ArrayList<>(buttonsWithImage);
-        buttons.addAll(buttonsWithText);
-        String imageStyle = "";
-        String textStyle = "";
-        if (stage.getHeight() > 645.0 && stage.getWidth() > 375.0) {
-            imageStyle = extendedBackgroundSize;
-            textStyle = extendedFontSize;
-        }
-        for (Button button : buttonsWithImage) {
-            button.setStyle(imageStyle);
-        }
-        for (Button button : buttonsWithText) {
-            button.setStyle(textStyle);
-        }
-
-    }
-
-    /**
-     * Function for getting wight of String some special font
-     *
-     * @param font Font of text
-     * @param text wight function calculates for
-     * @return wight
-     */
-    private static double computeTextWidth(Font font, String text) {
-        Text helper = new Text();
-        helper.setText(text);
-        helper.setFont(font);
-        return helper.getLayoutBounds().getWidth();
-    }
-
-    /**
-     * Function for converting {@code BigDecimal} value to a {@code String} in exponential system for displaying to user
-     *
-     * @param bigDecimal number which have to be displayed
-     * @return String which represents number for user
-     */
-    private String convertIntoExp(BigDecimal bigDecimal) {
-        String exponentialSymbolSign = SYMBOL_EXP;
-        if (!(bigDecimal.compareTo(BigDecimal.ONE.negate()) == 1 && bigDecimal.compareTo(BigDecimal.ONE) == -1)) {
+         if (val.abs().compareTo(BigDecimal.ONE) > 0) { // todo: make easier
             exponentialSymbolSign += "+";
-        }
-        symbols.setExponentSeparator(exponentialSymbolSign);
+         }
 
-        DecimalFormat expFormatter = new DecimalFormat("0.######E0");
-        expFormatter.setDecimalFormatSymbols(symbols);
-        expFormatter.setMaximumFractionDigits(MAX_DIGITS_IN_NUMBER - 2);
+         if (ifOnlyZerosAround(val.round(MathContext.DECIMAL64))) {
+            exponentialSymbolSign = FLOAT_POINT + exponentialSymbolSign;
+         }
 
-        String result = expFormatter.format(bigDecimal);
-        if (!result.contains(FLOAT_POINT)) {
-            int expIndex = result.indexOf(SYMBOL_EXP);
-            result = result.substring(0, expIndex) + FLOAT_POINT + result.substring(expIndex);
-        }
+         pattern = "0.######E0";
+         maxFractDigits = MAX_DIGITS_IN_NUMBER - 2;
 
-        return result;
-    }
+      } else {
+         maxFractDigits = MAX_DIGITS_IN_NUMBER - getDigitCount(val.toBigInteger()) - 1;
+         formatter.setRoundingMode(RoundingMode.HALF_UP);
+      }
 
-    /**
-     * Minimal value which can be displayed not in exponential system
-     */
-    private final BigDecimal MIN_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("0.0000000000000001");
-
-    /**
-     * Function counts digits in BigInteger value
-     *
-     * @param number value count of digits will be counted for
-     * @return count of digits in {@code number} value
-     */
-    private int getDigitCount(BigInteger number) {
-        number = number.abs();
-        double factor = Math.log(2) / Math.log(10);
-        int digitCount = (int) (factor * number.bitLength() + 1);
-        if (BigInteger.TEN.pow(digitCount - 1).compareTo(number) > 0) {
-            return digitCount - 1;
-        }
-        return digitCount;
-    }
-
-    /**
-     * Function counts zeros at the beginning of value
-     *
-     * @param number value for counting
-     * @return count of zeros
-     */
-    private static int zeroStartCounter(BigDecimal number) {
-        int zeroCount = 0;
-        while (number.toBigInteger().equals(BigInteger.ZERO) && number.compareTo(BigDecimal.ZERO) != 0) {
-            zeroCount++;
-            number = number.movePointRight(1);
-        }
-        return zeroCount;
-    }
+      symbols.setExponentSeparator(exponentialSymbolSign);
+      formatter.setDecimalFormatSymbols(symbols);
+      formatter.applyPattern(pattern);
+      formatter.setGroupingSize(3);
+      formatter.setGroupingUsed(true);
+      formatter.setMinimumFractionDigits(minFractDigits);
+      formatter.setMaximumFractionDigits(maxFractDigits);
+      result = formatter.format(val);
+      return result;
+   }
 
 
+   /**
+    * Function checks if {@code BigDecimal} value has only one not zero digit
+    *
+    * @param bd value which will be checked
+    * @return if {@code BigDecimal} value has only one not zero digit
+    */
+   private static boolean ifOnlyZerosAround(BigDecimal bd) {
+      boolean res = false;
+      bd = bd.stripTrailingZeros().abs();
+      if (bd.compareTo(BigDecimal.ONE) < 0 && bd.precision() == 1 && bd.scale() != 0) {
+         res = true;
+      } else if (bd.compareTo(BigDecimal.ONE) >= 0) {
+         BigDecimal before = bd;
+         int i = 0;
 
-    /**
-     * Function for converting {@code BigDecimal} value to a {@code String} value for displaying to user
-     *
-     * @param val number which have to be displayed
-     * @return String which represents number for user
-     * @throws NullPointerException If param {@code val} is empty
-     */
-    public String makeString(BigDecimal val) throws ArithmeticException {
-        String result;
-        symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
-        symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
-        formatter.setDecimalFormatSymbols(symbols);
-        if (inputting && isValueFloat) {
-            formatter.setMinimumFractionDigits(val.scale());
-            result = formatter.format(val);
-            //result += FLOAT_POINT + valStr.substring(valStr.indexOf('.') + 1); // todo: use formatter here
-            formatter.setMinimumFractionDigits(0);
-        } else if (val.abs().compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) == 1
-                || (val.abs().compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) == -1 && val.compareTo(BigDecimal.ZERO) != 0)
-                || (val.stripTrailingZeros().precision() >= MAX_DIGITS_IN_NUMBER - MAX_COUNT_OF_FIRST_ZEROS - 1 && zeroStartCounter(val) >= MAX_COUNT_OF_FIRST_ZEROS)) {
-            result = convertIntoExp(val);
-        } else {
-            int fractionDigits = MAX_DIGITS_IN_NUMBER - getDigitCount(val.toBigInteger()) - 1;
-            formatter.setRoundingMode(RoundingMode.HALF_UP);
-            formatter.setMaximumFractionDigits(fractionDigits);
+         while (bd.compareTo(BigDecimal.TEN) > 0) {
+            i++;
+            bd = bd.movePointLeft(1).setScale(0, RoundingMode.DOWN);
+         }
 
-            result = formatter.format(val);
-        }
-        return result;
-    }
+         if (i != 0 && bd.multiply(BigDecimal.TEN.pow(i)).compareTo(before) == 0) {
+            res = true;
+         }
+      }
 
-    /**
-     * Function for converting String value to a {@code BigDecimal} value for doing calculations
-     *
-     * @param numberStr String got from label of calculator
-     * @return {@code BigDecimal} made from {@code String} inputted in label
-     * @throws NullPointerException  If param {@code number} is empty
-     * @throws NumberFormatException If param {@code number} given in inappropriate form as for number
-     */
-    public BigDecimal makeDecimal(String numberStr) {
-        if (numberStr.length() == 0) {
-            throw new NullPointerException();
-        }
-        numberStr = numberStr.replace(FLOAT_POINT, ".").replace(BIG_NUMBER_SEPARATOR, "").replace(SYMBOL_EXP, "E");
-        return new BigDecimal(numberStr);
-    }
+      return res;
+   }
+
+   /**
+    * Function for getting special operation appearance
+    *
+    * @param specialOperation operation whose symbol we need
+    * @param str              number or string operation should be displayed with
+    * @return String with operation symbol and {@code str}
+    */
+   private String specialOperationSign(SpecialOperation specialOperation, String str) { // todo: remove operation appearance from model
+      String res;
+      if (specialOperation == SQR) {
+         res = "sqr( " + str.replace(".", ",") + " )";
+      } else if (specialOperation == SQRT) {
+         res = "√( " + str.replace(".", ",") + " )";
+      } else if (specialOperation == PERCENT) {
+         res = "%( " + str.replace(".", ",") + " )";
+      } else if (specialOperation == ONE_DIVIDED) {
+         res = "1/( " + str.replace(".", ",") + " )";
+      } else { // special operation = negate
+         res = "negate( " + str.replace(".", ",") + " )";
+      }
+      return res;
+   }
 }

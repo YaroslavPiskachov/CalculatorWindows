@@ -9,6 +9,8 @@ import javafx.stage.Stage;
 
 /**
  * Class implements event handler for resizing window by mouse
+ *
+ * @author Yaroslav Piskachov
  */
 public class ResizeListener implements EventHandler<MouseEvent> {
     /**
@@ -51,6 +53,8 @@ public class ResizeListener implements EventHandler<MouseEvent> {
      */
     private double minPositionY;
 
+
+
     /**
      * Margin from borders where you can press to resize window
      */
@@ -82,12 +86,24 @@ public class ResizeListener implements EventHandler<MouseEvent> {
     private Stage stage;
 
     /**
+     * Minimal width of stage
+     */
+    double stageMinWidth;
+
+    /**
+     * Minimal height of stage
+     */
+    double stageMinHeight;
+
+    /**
      * Scene of window
      */
     private Scene scene;
 
     public ResizeListener(Stage stage) {
         this.stage = stage;
+        stageMinWidth = stage.getMinWidth();
+        stageMinHeight = stage.getMinHeight();
         scene = stage.getScene();
 
     }
@@ -102,42 +118,47 @@ public class ResizeListener implements EventHandler<MouseEvent> {
     @Override
     public void handle(MouseEvent t) {
         if (MouseEvent.MOUSE_MOVED.equals(t.getEventType())) {
-            if (t.getX() < border && t.getY() < border) {
+            double windowX = t.getX();
+            double windowY = t.getY();
+            double sceneWidth = scene.getWidth();
+            double sceneHeight = scene.getHeight();
+
+            if (windowX < border && windowY < border) {
                 scene.setCursor(Cursor.NW_RESIZE);
                 resizeH = true;
                 resizeV = true;
                 moveH = true;
                 moveV = true;
-            } else if (t.getX() < border && t.getY() > scene.getHeight() - border) {
+            } else if (windowX < border && windowY > sceneHeight - border) {
                 scene.setCursor(Cursor.SW_RESIZE);
                 resizeH = true;
                 resizeV = true;
                 moveH = true;
                 moveV = false;
-            } else if (t.getX() > scene.getWidth() - border && t.getY() < border) {
+            } else if (windowX > sceneWidth - border && windowY < border) {
                 scene.setCursor(Cursor.NE_RESIZE);
                 resizeH = true;
                 resizeV = true;
                 moveH = false;
                 moveV = true;
-            } else if (t.getX() > scene.getWidth() - border && t.getY() > scene.getHeight() - border) {
+            } else if (windowX > sceneWidth - border && windowY > sceneHeight - border) {
                 scene.setCursor(Cursor.SE_RESIZE);
                 resizeH = true;
                 resizeV = true;
                 moveH = false;
                 moveV = false;
-            } else if (t.getX() < border || t.getX() > scene.getWidth() - border) {
+            } else if (windowX < border || windowX > sceneWidth - border) {
                 scene.setCursor(Cursor.E_RESIZE);
                 resizeH = true;
                 resizeV = false;
-                moveH = (t.getX() < border);
+                moveH = (windowX < border);
                 moveV = false;
-            } else if (t.getY() < border || t.getY() > scene.getHeight() - border) {
+            } else if (windowY < border || windowY > sceneHeight - border) {
                 scene.setCursor(Cursor.N_RESIZE);
                 resizeH = false;
                 resizeV = true;
                 moveH = false;
-                moveV = (t.getY() < border);
+                moveV = (windowY < border);
             } else {
                 scene.setCursor(Cursor.DEFAULT);
                 resizeH = false;
@@ -152,52 +173,52 @@ public class ResizeListener implements EventHandler<MouseEvent> {
             lastScreenX = t.getScreenX();
             lastScreenY = t.getScreenY();
 
-            minPositionX = stage.getX() + (stage.getWidth() - stage.getMinWidth());
-            minPositionY = stage.getY() + (stage.getHeight() - stage.getMinHeight());
+            minPositionX = stage.getX() + (lastWight - stageMinWidth);
+            minPositionY = stage.getY() + (lastHeight - stageMinHeight);
         } else if (MouseEvent.MOUSE_DRAGGED.equals(t.getEventType())) {
             if (resizeH) {
+                double newScreenX = t.getScreenX();
                 if (moveH) {
-                    deltaX = lastScreenX - t.getScreenX();
+                    deltaX = lastScreenX - newScreenX;
                     double newWight = lastWight + deltaX;
-                    double x = t.getScreenX();
 
-                    if (newWight < stage.getMinWidth()) {
-                        newWight = stage.getMinWidth();
-                        x = minPositionX;
+                    if (newWight < stageMinWidth) {
+                        newWight = stageMinWidth;
+                        newScreenX = minPositionX;
                     }
 
                     setWight(newWight);
-                    stage.setX(x);
+                    stage.setX(newScreenX);
                 } else {
-                    deltaX = t.getScreenX() - lastScreenX;
+                    deltaX = newScreenX - lastScreenX;
                     double wight = lastWight + deltaX;
 
-                    if (t.getScreenX() < lastScreenX) {
-                        wight = stage.getMinWidth();
+                    if (newScreenX < lastScreenX) {
+                        wight = stageMinWidth;
                     }
 
                     setWight(wight);
                 }
             }
             if (resizeV) {
+                double newScreenY = t.getScreenY();
                 if (moveV) {
-                    deltaY = lastScreenY - t.getScreenY();
+                    deltaY = lastScreenY - newScreenY;
                     double newHeight = lastHeight + deltaY;
-                    double newY = t.getScreenY();
 
-                    if (newHeight < stage.getMinHeight()) {
-                        newHeight = stage.getMinHeight();
-                        newY = minPositionY;
+                    if (newHeight < stageMinHeight) {
+                        newHeight = stageMinHeight;
+                        newScreenY = minPositionY;
                     }
 
                     setHeight(newHeight);
-                    stage.setY(newY);
+                    stage.setY(newScreenY);
                 } else {
-                    deltaY = t.getScreenY() - lastScreenY;
+                    deltaY = newScreenY - lastScreenY;
                     double height = lastHeight + deltaY;
 
-                    if (t.getScreenY() < lastScreenY) {
-                        height = stage.getMinHeight();
+                    if (newScreenY < lastScreenY) {
+                        height = stageMinHeight;
                     }
 
                     setHeight(height);

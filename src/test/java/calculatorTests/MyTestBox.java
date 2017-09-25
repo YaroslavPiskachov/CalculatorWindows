@@ -11,10 +11,13 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import model.BinaryOperation;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static calculatorTests.MyTestBox.ButtonEnum.*;
 import static org.junit.Assert.assertEquals;
@@ -31,11 +34,10 @@ public class MyTestBox extends ApplicationTest {
     static Stage stage;
     private String[] digitButtonId = new String[]{ZERO.fxId, ONE.fxId, TWO.fxId, THREE.fxId, FOUR.fxId,
             FIVE.fxId, SIX.fxId, SEVEN.fxId, EIGHT.fxId, NINE.fxId};
+    Map<BinaryOperation, String> binaryOperationStringMap = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample.fxml"));
         Parent root = loader.load();
         if(!primaryStage.isShowing()) {
@@ -55,6 +57,11 @@ public class MyTestBox extends ApplicationTest {
         historyLabel = find("#historyLabel");
         scene = primaryStage.getScene();
         stage = primaryStage;
+
+        binaryOperationStringMap.put(BinaryOperation.PLUS,"+");
+        binaryOperationStringMap.put(BinaryOperation.MINUS,"-");
+        binaryOperationStringMap.put(BinaryOperation.MULTIPLY,"×");
+        binaryOperationStringMap.put(BinaryOperation.DIVIDE,"÷");
     }
 
     void clickOn(String identifier) {
