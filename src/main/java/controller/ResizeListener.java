@@ -13,6 +13,11 @@ import javafx.stage.Stage;
  * @author Yaroslav Piskachov
  */
 public class ResizeListener implements EventHandler<MouseEvent> {
+
+    /**
+     * Margin from borders where you can press to resize window
+     */
+    private static final double border = 10;
     /**
      * Wight of window before resizing
      */
@@ -55,10 +60,7 @@ public class ResizeListener implements EventHandler<MouseEvent> {
 
 
 
-    /**
-     * Margin from borders where you can press to resize window
-     */
-    private double border = 10;
+
 
     /**
      * Is horizontal moving needed
@@ -88,19 +90,19 @@ public class ResizeListener implements EventHandler<MouseEvent> {
     /**
      * Minimal width of stage
      */
-    double stageMinWidth;
+    private double stageMinWidth;
 
     /**
      * Minimal height of stage
      */
-    double stageMinHeight;
+    private double stageMinHeight;
 
     /**
      * Scene of window
      */
     private Scene scene;
 
-    public ResizeListener(Stage stage) {
+    ResizeListener(Stage stage) {
         this.stage = stage;
         stageMinWidth = stage.getMinWidth();
         stageMinHeight = stage.getMinHeight();

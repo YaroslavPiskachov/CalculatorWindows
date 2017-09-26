@@ -14,8 +14,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import model.*;
-import sun.util.locale.provider.LocaleProviderAdapter;
-import sun.util.locale.provider.ResourceBundleBasedAdapter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,7 +21,6 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.spi.NumberFormatProvider;
 import java.util.*;
 import java.util.List;
 
@@ -43,80 +40,139 @@ import static model.SpecialOperation.*;
 public class Controller {
 
    /**
+    * If height greater than this valuer resizing is needed
+    */
+   private static final double CONTENT_BUTTON_LIMIT_HEIGHT = 645.0;
+
+   /**
+    * If width greater than this valuer resizing is needed
+    */
+   private static final double CONTENT_BUTTON_LIMIT_WIDTH = 375.0;
+
+   /**
+    * Define font of numbers in main label of window
+    */
+   private static final Font fontForMainLabel = new Font("Microsoft JhengHei UI Bold", 45);
+
+   /**
+    * Css style of font of buttons with text after increasing window size
+    */
+   private static final String EXTENDED_FONT_SIZE = "-fx-font-size: 26px";
+
+   /**
+    * Css style of background size for buttons with image after increasing window size
+    */
+   private static final String EXTENDED_BACKGROUND_SIZE = "-fx-background-size: 85 60";
+
+   /**
+    * Max count of zeros that can be at the beginning of number
+    */
+   private static final int MAX_COUNT_OF_FIRST_ZEROS = 4;
+
+   /**
+    * Max number in normal system for doing calculations
+    */
+   private static final BigDecimal MAX_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("9999999999999999.4999999999999999");
+
+   /**
+    * Minimal value which can be displayed not in exponential system
+    */
+   private static final BigDecimal MIN_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("0.0000000000000001");
+
+   /**
+    * Max count of digits in number calculator can display
+    */
+   private static final int MAX_DIGITS_IN_NUMBER = 17;
+
+   /**
+    * Symbol which defines number as in exponential system
+    */
+   private static final String SYMBOL_EXP = "e";
+
+   /**
+    * Symbol which separates parts of float number
+    */
+   private static final String FLOAT_POINT = ",";
+
+   /**
+    * Symbol which separates parts of big number by three digits
+    */
+   private static final String BIG_NUMBER_SEPARATOR = " ";
+
+   /**
+    * Value which is defined as initial for calculator display
+    */
+   private static final BigDecimal DEFAULT_VALUE = BigDecimal.ZERO;
+
+   /**
+    * The greatest value calculator can work with
+    */
+   private static final BigDecimal MAX_VALUE = new BigDecimal("1.000000000000000E+10000");
+
+   /**
+    * The nearest positive value to zero
+    */
+   private static final BigDecimal MIN_POSITIVE_VALUE = new BigDecimal("1E-9999");
+
+   /**
+    * The nearest negative value to zero
+    */
+   private static final BigDecimal MAX_NEGATIVE_VALUE = new BigDecimal("-1E-9999");
+
+   /**
+    * Minimal value calculator can work with
+    */
+   private static final BigDecimal MIN_VALUE = new BigDecimal("-9.999999999999999E+9999");
+
+   /**
+    * Massage will be shown to user when division by zero exception was thrown
+    */
+   private static final String DIVISION_BY_ZERO_MSG = "Деление на 0";
+
+   /**
+    * Massage will be shown to user when negative value for sqrt exception was thrown
+    */
+   private static final String NEGATIVE_VALUE_FOR_SQRT_EXCEPTION_MSG = "Введены неверные данные";
+
+   /**
+    * Default pattern according to out localization
+    */
+   private static final String DEFAULT_PATTERN = "#,##0.###;-#,##0.###";
+
+   /**
+    * Pattern which is used by formatter when exponential system is needed
+    */
+   private static final String PATTERN_FOR_EXP = "0.######E0";
+
+   /**
+    * Pattern which is used by formatter when digit is float
+    */
+   private static final String PATTERN_FOR_FLOAT = "#.";
+
+   /**
+    * Sign for minus operation or negate sign for value in exp systen
+    */
+   private static final String MINUS_SIGN = "-";
+
+   /**
+    * Sign for plus operation or negate sign for value in exp systen
+    */
+   private static final String PLUS_SIGN = "+";
+
+   /**
+    * Model of calculator
+    */
+   private Calculator calculator = new Calculator();
+
+   /**
     * Previous inputted value for calculations
     */
    private BigDecimal lastValue;
-
 
    /**
     * Collection for mapping operations and id's
     */
    private Map<Button, Operation> operationMap = new HashMap<>();
-
-   /**
-    * Model of calculator
-    */
-   private static Calculator calculator = new Calculator();
-
-   /**
-    * Max count of zeros that can be at the beginning of number
-    */
-   private final int MAX_COUNT_OF_FIRST_ZEROS = 4;
-
-   /**
-    * Max number in normal system for doing calculations
-    */
-   private final BigDecimal MAX_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("9999999999999999.4999999999999999");
-
-   /**
-    * Minimal value which can be displayed not in exponential system
-    */
-   private final BigDecimal MIN_NUMBER_IN_NORMAL_SYSTEM = new BigDecimal("0.0000000000000001");
-
-   /**
-    * Max count of digits in number calculator can display
-    */
-   private final int MAX_DIGITS_IN_NUMBER = 17;
-
-   /**
-    * Symbol which defines number as in exponential system
-    */
-   private final String SYMBOL_EXP = "e";
-
-   /**
-    * Symbol which separates parts of float number
-    */
-   private final String FLOAT_POINT = ",";
-
-   /**
-    * Symbol which separates parts of big number by three digits
-    */
-   private final String BIG_NUMBER_SEPARATOR = " ";
-
-   /**
-    * Value which is defined as initial for calculator display
-    */
-   private final BigDecimal DEFAULT_VALUE = BigDecimal.ZERO;
-
-   /**
-    * The greatest value calculator can work with
-    */
-   private final BigDecimal MAX_VALUE = new BigDecimal("1.000000000000000E+10000");
-
-   /**
-    * The nearest positive value to zero
-    */
-   private final BigDecimal MIN_POSITIVE_VALUE = new BigDecimal("1E-9999");
-
-   /**
-    * The nearest negative value to zero
-    */
-   private final BigDecimal MAX_NEGATIVE_VALUE = new BigDecimal("-1E-9999");
-
-   /**
-    * Minimal value calculator can work with
-    */
-   private final BigDecimal MIN_VALUE = new BigDecimal("-9.999999999999999E+9999");
 
    /**
     * Current value contains number from main label of calculator
@@ -132,31 +188,6 @@ public class Controller {
     * Stage of application
     */
    private Stage stage;
-
-   /**
-    * If height greater than this valuer resizing is needed
-    */
-   private final double contentButtonLimitHeight = 645.0;
-
-   /**
-    * If width greater than this valuer resizing is needed
-    */
-   private final double contentButtonLimitWidth = 375.0;
-
-   /**
-    * Define font of numbers in main label of window
-    */
-   private final Font fontForMainLabel = new Font("Microsoft JhengHei UI Bold", 45);
-
-   /**
-    * Css style of font of buttons with text after increasing window size
-    */
-   private final String extendedFontSize = "-fx-font-size: 26px";
-
-   /**
-    * Css style of background size for buttons with image after increasing window size
-    */
-   private final String extendedBackgroundSize = "-fx-background-size: 85 60";
 
    /**
     * Define type of binary operation which is selected
@@ -209,15 +240,6 @@ public class Controller {
     */
    private String overflowExceptionMsg = "Переполнение";
 
-   /**
-    * Massage will be shown to user when division by zero exception was thrown
-    */
-   private String divisionByZeroMsg = "Деление на 0";
-
-   /**
-    * Massage will be shown to user when negative value for sqrt exception was thrown
-    */
-   private String negativeValueForSqrtExceptionMsg = "Введены неверные данные";
 
    /**
     * Text object for measuring string width
@@ -245,19 +267,10 @@ public class Controller {
    private boolean isNegativeZero;
 
    /**
-    * Default pattern according to out localization
-    */
-   private String defaultPattern;
-
-   /**
     * Collection for mapping operations with their symbols
     */
    private Map<BinaryOperation, String> binaryOperationStringMap = new HashMap<>();
 
-   /**
-    * Collection for mapping keys with their buttons analog
-    */
-   private Map<KeyCode, Button> keyCodeButtonMap = new HashMap<>();
 
    /**
     * Parent pane for calculator
@@ -548,13 +561,21 @@ public class Controller {
     * Function represents listener on button for clearing all elements
     */
    @FXML
-   public void clearAllButton() throws OverflowException {
+   public void clearAllButton() {
       setDisableButtons(false);
       binaryOperation = null;
       currentValue = DEFAULT_VALUE;
       lastValue = null;
-      displayValue(DEFAULT_VALUE);
-      historyLabel.setText("");// todo: remove " " symbol
+
+      try {
+         displayValue(DEFAULT_VALUE);
+      } catch (OverflowException e) {
+         closeWindowButton();
+         throw new IllegalArgumentException("Default value - "+ DEFAULT_VALUE +" cannot be bigger than max value - " + MAX_VALUE
+                 + " or less than min value - " + MAX_VALUE.negate());
+      }
+
+      historyLabel.setText("");
       calculator.makeHistoryEmpty();
       isCalculateButtonLast = false;
       isValueFloat = false;
@@ -619,7 +640,7 @@ public class Controller {
             }
          }
          answer = null;
-         historyLabel.setText(""); // todo: remove " " symbol
+         historyLabel.setText("");
          calculator.makeHistoryEmpty();
          isDigitAddedLast = true;
          lastSpecialAddedToHistory = null;
@@ -710,7 +731,7 @@ public class Controller {
       Button button = (Button) actionEvent.getSource();
       SpecialOperation specialOperation = (SpecialOperation) operationMap.get(button);
 
-      if (!(specialOperation == NEGATE && lastSpecialAddedToHistory == null)) {
+      if (specialOperation != NEGATE || lastSpecialAddedToHistory != null) { //
          addToHistoryLabel(specialOperation);
       }
       this.specialOperation = specialOperation;
@@ -767,9 +788,9 @@ public class Controller {
    private void printException(Exception e) {
       String toMainLabel;
       if (e instanceof DivisionByZeroException) {
-         toMainLabel = divisionByZeroMsg;
+         toMainLabel = DIVISION_BY_ZERO_MSG;
       } else if (e instanceof NegativeValueForSqrtException) {
-         toMainLabel = negativeValueForSqrtExceptionMsg;
+         toMainLabel = NEGATIVE_VALUE_FOR_SQRT_EXCEPTION_MSG;
       } else if (e instanceof OverflowException) {
          toMainLabel = overflowExceptionMsg;
       } else {
@@ -777,11 +798,8 @@ public class Controller {
       }
 
       String history = historyLabel.getText();
-      try {
-         clearAllButton();
-      } catch (OverflowException r) {
-         r.printStackTrace();
-      }
+
+      clearAllButton();
 
       mainLabel.setText(toMainLabel);
       replaceValue = true;
@@ -843,9 +861,14 @@ public class Controller {
    private void deleteLastSpecialInHistory() {
       int historySize = calculator.getHistorySize();
       boolean inLoop = false;
-      for (int i = historySize - 1; (i >= 0) && (calculator.getFromHistory(i) instanceof SpecialOperation); i--) {
-         inLoop = true;
-         calculator.deleteLastInHistory();
+      for (int i = historySize - 1; i >= 0; i--) {
+
+         if (calculator.getFromHistory(i) instanceof SpecialOperation) {
+            inLoop = true;
+            calculator.deleteLastInHistory();
+         } else {
+            break;
+         }
       }
       if (inLoop) {
          calculator.deleteLastInHistory();
@@ -885,8 +908,11 @@ public class Controller {
          currentValue = DEFAULT_VALUE;
       }
 
-      if ((currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == MAX_DIGITS_IN_NUMBER)
-              || !currentValue.toBigInteger().equals(BigInteger.ZERO) && currentValue.precision() == MAX_DIGITS_IN_NUMBER - 1) {
+      int countOfZeros = zeroStartCounter(currentValue);
+      int precision = currentValue.precision();
+
+      if ((countOfZeros > 0 && precision == MAX_DIGITS_IN_NUMBER)
+              || countOfZeros == 0 && precision == MAX_DIGITS_IN_NUMBER - 1) {
          inputting = false;
          return; // number too long
       }
@@ -943,7 +969,7 @@ public class Controller {
 
    /**
     * {@see https://stackoverflow.com/questions/1078953/check-if-bigdecimal-is-integer-value}
-    *
+    * <p>
     * Function check is value has integer type
     *
     * @param bd value will be checked
@@ -966,12 +992,14 @@ public class Controller {
             if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
                calculator.addToHistory(currentValue);
             }
+
             lastSpecialAddedToHistory = null;
          }
       } else {
          if (!(calculator.getLastFromHistory() instanceof SpecialOperation)) {
             calculator.addToHistory(currentValue);
          }
+
          lastSpecialAddedToHistory = (SpecialOperation) operation;
       }
       calculator.addToHistory(operation);
@@ -992,13 +1020,14 @@ public class Controller {
          if (obj instanceof BigDecimal) {
             toHistory = makeString((BigDecimal) obj).replace(BIG_NUMBER_SEPARATOR, ""); // history needs the same formatting but with out group separating
 
-            for (int j = i; j + 1 < historySize; j++) { // todo: make this easier
+            for (int j = i; j + 1 < historySize; j++) {
                Object sp = calculator.getFromHistory(j + 1);
 
-               if(!(sp instanceof SpecialOperation)){ // for nested operations
+               if (sp instanceof SpecialOperation) { // for nested operations
+                  toHistory = specialOperationSign((SpecialOperation) sp, toHistory);
+               } else {
                   break;
                }
-               toHistory = specialOperationSign((SpecialOperation) sp, toHistory);
             }
 
          } else if (obj instanceof BinaryOperation) {
@@ -1033,6 +1062,7 @@ public class Controller {
     * @param primaryStage main stage of application
     */
    public void setStageAndInitialize(Stage primaryStage) {
+
       // fill map with special operations
       operationMap.put(sqrButton, SQR);
       operationMap.put(sqrtButton, SQRT);
@@ -1062,42 +1092,44 @@ public class Controller {
       scene.setOnMousePressed(r);
       scene.setOnMouseDragged(r);
 
+
       //mapping keys and their button analogs
-      keyCodeButtonMap.put(NUMPAD0,zeroButton);
-      keyCodeButtonMap.put(DIGIT0,zeroButton);
-      keyCodeButtonMap.put(NUMPAD1,oneButton);
-      keyCodeButtonMap.put(DIGIT1,oneButton);
-      keyCodeButtonMap.put(NUMPAD2,twoButton);
-      keyCodeButtonMap.put(DIGIT2,twoButton);
-      keyCodeButtonMap.put(NUMPAD3,threeButton);
-      keyCodeButtonMap.put(DIGIT3,threeButton);
-      keyCodeButtonMap.put(NUMPAD4,fourButton);
-      keyCodeButtonMap.put(DIGIT4,fourButton);
-      keyCodeButtonMap.put(NUMPAD5,fiveButton);
-      keyCodeButtonMap.put(DIGIT5,fiveButton);
-      keyCodeButtonMap.put(NUMPAD6,sixButton);
-      keyCodeButtonMap.put(DIGIT6,sixButton);
-      keyCodeButtonMap.put(NUMPAD7,sevenButton);
-      keyCodeButtonMap.put(DIGIT7,sevenButton);
-      keyCodeButtonMap.put(NUMPAD8,eightButton);
-      keyCodeButtonMap.put(DIGIT8,eightButton);
-      keyCodeButtonMap.put(NUMPAD9,nineButton);
-      keyCodeButtonMap.put(DIGIT9,nineButton);
-      keyCodeButtonMap.put(SUBTRACT,minusButton);
-      keyCodeButtonMap.put(MINUS,minusButton);
-      keyCodeButtonMap.put(PLUS,plusButton);
-      keyCodeButtonMap.put(ADD,plusButton);
-      keyCodeButtonMap.put(MULTIPLY,multiplyButton);
-      keyCodeButtonMap.put(DIVIDE,divideButton);
-      keyCodeButtonMap.put(EQUALS,calculateButton);
-      keyCodeButtonMap.put(COMMA,commaButton);
+      Map<KeyCode, Button> keyCodeButtonMap = new HashMap<>();
+      keyCodeButtonMap.put(NUMPAD0, zeroButton);
+      keyCodeButtonMap.put(DIGIT0, zeroButton);
+      keyCodeButtonMap.put(NUMPAD1, oneButton);
+      keyCodeButtonMap.put(DIGIT1, oneButton);
+      keyCodeButtonMap.put(NUMPAD2, twoButton);
+      keyCodeButtonMap.put(DIGIT2, twoButton);
+      keyCodeButtonMap.put(NUMPAD3, threeButton);
+      keyCodeButtonMap.put(DIGIT3, threeButton);
+      keyCodeButtonMap.put(NUMPAD4, fourButton);
+      keyCodeButtonMap.put(DIGIT4, fourButton);
+      keyCodeButtonMap.put(NUMPAD5, fiveButton);
+      keyCodeButtonMap.put(DIGIT5, fiveButton);
+      keyCodeButtonMap.put(NUMPAD6, sixButton);
+      keyCodeButtonMap.put(DIGIT6, sixButton);
+      keyCodeButtonMap.put(NUMPAD7, sevenButton);
+      keyCodeButtonMap.put(DIGIT7, sevenButton);
+      keyCodeButtonMap.put(NUMPAD8, eightButton);
+      keyCodeButtonMap.put(DIGIT8, eightButton);
+      keyCodeButtonMap.put(NUMPAD9, nineButton);
+      keyCodeButtonMap.put(DIGIT9, nineButton);
+      keyCodeButtonMap.put(SUBTRACT, minusButton);
+      keyCodeButtonMap.put(MINUS, minusButton);
+      keyCodeButtonMap.put(PLUS, plusButton);
+      keyCodeButtonMap.put(ADD, plusButton);
+      keyCodeButtonMap.put(MULTIPLY, multiplyButton);
+      keyCodeButtonMap.put(DIVIDE, divideButton);
+      keyCodeButtonMap.put(EQUALS, calculateButton);
+      keyCodeButtonMap.put(COMMA, commaButton);
 
 
       // keyboard buttons listeners
       stage = primaryStage;
       stage.getScene().setOnKeyPressed(event -> {
          KeyCode keyCode = event.getCode();
-         Button button = keyCodeButtonMap.get(keyCode); // todo: replace if else with map
+         Button button = keyCodeButtonMap.get(keyCode);
          if (button != null) {
             button.fire();
             button.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), true);
@@ -1125,19 +1157,16 @@ public class Controller {
               }));
 
       // mapping binary operations with symbols
-      binaryOperationStringMap.put(BinaryOperation.PLUS, "+");
-      binaryOperationStringMap.put(BinaryOperation.MINUS, "-");
+      binaryOperationStringMap.put(BinaryOperation.PLUS, PLUS_SIGN);
+      binaryOperationStringMap.put(BinaryOperation.MINUS, MINUS_SIGN);
       binaryOperationStringMap.put(BinaryOperation.MULTIPLY, "×");
       binaryOperationStringMap.put(BinaryOperation.DIVIDE, "÷");
 
-      // Get the pattern for the default locale.
-      Locale def = Locale.getDefault(Locale.Category.FORMAT);
-      LocaleProviderAdapter adapter = LocaleProviderAdapter.getAdapter(NumberFormatProvider.class, def);
-      if (!(adapter instanceof ResourceBundleBasedAdapter)) {
-         adapter = LocaleProviderAdapter.getResourceBundleBased();
-      }
-      String[] all = adapter.getLocaleResources(def).getNumberPatterns();
-      defaultPattern = all[0];
+      symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
+      symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
+      formatter.setGroupingSize(3);
+      formatter.setGroupingUsed(true);
+
    }
 
    /**
@@ -1148,16 +1177,18 @@ public class Controller {
       buttons.addAll(buttonsWithText);
       String imageStyle;
       String textStyle;
-      if (stage.getHeight() > contentButtonLimitHeight && stage.getWidth() > contentButtonLimitWidth) { // todo: remove magic constants
-         imageStyle = extendedBackgroundSize;
-         textStyle = extendedFontSize;
+      if (stage.getHeight() > CONTENT_BUTTON_LIMIT_HEIGHT && stage.getWidth() > CONTENT_BUTTON_LIMIT_WIDTH) {
+         imageStyle = EXTENDED_BACKGROUND_SIZE;
+         textStyle = EXTENDED_FONT_SIZE;
       } else {
          imageStyle = "";
          textStyle = "";
       }
+
       for (Button button : buttonsWithImage) {
          button.setStyle(imageStyle);
       }
+
       for (Button button : buttonsWithText) {
          button.setStyle(textStyle);
       }
@@ -1179,7 +1210,7 @@ public class Controller {
 
    /**
     * {@see https://stackoverflow.com/questions/18828377/biginteger-count-the-number-of-decimal-digits-in-a-scalable-method}
-    *
+    * <p>
     * Function counts digits in BigInteger value
     *
     * @param number value count of digits will be counted for
@@ -1219,10 +1250,9 @@ public class Controller {
     */
    private String makeString(BigDecimal val) throws ArithmeticException {
       String result;
-      String pattern = defaultPattern;
+      String pattern = DEFAULT_PATTERN;
       String exponentialSymbolSign = SYMBOL_EXP;
-      symbols.setDecimalSeparator(FLOAT_POINT.charAt(0));
-      symbols.setGroupingSeparator(BIG_NUMBER_SEPARATOR.charAt(0));
+
 
       int minFractDigits = 0;
       int maxFractDigits = MAX_DIGITS_IN_NUMBER - 1;
@@ -1234,15 +1264,15 @@ public class Controller {
                pattern = "";
             } else {
                isNegativeZero = true;
-               pattern = "-";
+               pattern = MINUS_SIGN;
             }
          }
 
          minFractDigits = val.scale();
-         pattern += "#.";
+         pattern += PATTERN_FOR_FLOAT;
       } else if (inputting && isValueFloat) {
          if (putComma) {
-            pattern = "#.";
+            pattern = PATTERN_FOR_FLOAT;
          } else if (val.scale() == 0) {
             isValueFloat = false;
          } else {
@@ -1250,22 +1280,22 @@ public class Controller {
          }
 
          if (isNegativeZero && !isValueFloat) {
-            pattern = "-" + pattern;
+            pattern = MINUS_SIGN + pattern;
          }
       } else if (val.abs().compareTo(MAX_NUMBER_IN_NORMAL_SYSTEM) > 0
               || (val.abs().compareTo(MIN_NUMBER_IN_NORMAL_SYSTEM) < 0 && val.compareTo(BigDecimal.ZERO) != 0)
               || (val.stripTrailingZeros().precision() >= MAX_DIGITS_IN_NUMBER - MAX_COUNT_OF_FIRST_ZEROS - 1 && zeroStartCounter(val) >= MAX_COUNT_OF_FIRST_ZEROS)) {
 
 
-         if (val.abs().compareTo(BigDecimal.ONE) > 0) { // todo: make easier
-            exponentialSymbolSign += "+";
+         if (val.abs().compareTo(BigDecimal.ONE) > 0) {
+            exponentialSymbolSign += PLUS_SIGN;
          }
 
          if (ifOnlyZerosAround(val.round(MathContext.DECIMAL64))) {
             exponentialSymbolSign = FLOAT_POINT + exponentialSymbolSign;
          }
 
-         pattern = "0.######E0";
+         pattern = PATTERN_FOR_EXP;
          maxFractDigits = MAX_DIGITS_IN_NUMBER - 2;
 
       } else {
@@ -1276,8 +1306,7 @@ public class Controller {
       symbols.setExponentSeparator(exponentialSymbolSign);
       formatter.setDecimalFormatSymbols(symbols);
       formatter.applyPattern(pattern);
-      formatter.setGroupingSize(3);
-      formatter.setGroupingUsed(true);
+
       formatter.setMinimumFractionDigits(minFractDigits);
       formatter.setMaximumFractionDigits(maxFractDigits);
       result = formatter.format(val);
@@ -1320,7 +1349,7 @@ public class Controller {
     * @param str              number or string operation should be displayed with
     * @return String with operation symbol and {@code str}
     */
-   private String specialOperationSign(SpecialOperation specialOperation, String str) { // todo: remove operation appearance from model
+   private String specialOperationSign(SpecialOperation specialOperation, String str) {
       String res;
       if (specialOperation == SQR) {
          res = "sqr( " + str.replace(".", ",") + " )";
@@ -1330,8 +1359,10 @@ public class Controller {
          res = "%( " + str.replace(".", ",") + " )";
       } else if (specialOperation == ONE_DIVIDED) {
          res = "1/( " + str.replace(".", ",") + " )";
-      } else { // special operation = negate
+      } else if (specialOperation == NEGATE) { // special operation = negate
          res = "negate( " + str.replace(".", ",") + " )";
+      } else {
+         throw new IllegalArgumentException("wrong operation; Operation is " + specialOperation);
       }
       return res;
    }

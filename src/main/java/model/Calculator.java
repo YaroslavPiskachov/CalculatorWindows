@@ -60,6 +60,7 @@ public class Calculator {
     * Function for getting element from history
     *
     * @param i index of {@code history} list
+    *
     * @return element {@code history} by index i
     */
    public Object getFromHistory(int i) {
@@ -132,7 +133,7 @@ public class Calculator {
     * @param currentValue operation will be executed for
     * @return {@code BigDecimal} result of operation
     */
-   public BigDecimal sqr(BigDecimal currentValue) {
+   private BigDecimal sqr(BigDecimal currentValue) {
       return currentValue.pow(2, MathContext.DECIMAL128);
    }
 
@@ -221,7 +222,7 @@ public class Calculator {
     * @param secondValue second value for calculating
     * @return {@code BigDecimal} result of operation
     */
-   public BigDecimal executeOperation(Operation operation, BigDecimal firstValue, BigDecimal secondValue) throws DivisionByZeroException, WrongOperationException {
+   public BigDecimal executeOperation(Operation operation, BigDecimal firstValue, BigDecimal secondValue) throws DivisionByZeroException {
 
       BigDecimal answer;
       if (operation == PLUS) {
@@ -235,7 +236,7 @@ public class Calculator {
       } else if (operation == PERCENT) {
          answer = percent(firstValue, secondValue);
       } else {
-         throw new WrongOperationException();
+         throw new IllegalArgumentException("wrong operation " + operation);
       }
 
       return answer;
@@ -248,7 +249,7 @@ public class Calculator {
     * @param firstValue       value for calculating
     * @return {@code BigDecimal} result of operation
     */
-   public BigDecimal executeOperation(SpecialOperation specialOperation, BigDecimal firstValue) throws DivisionByZeroException, NegativeValueForSqrtException, WrongOperationException {
+   public BigDecimal executeOperation(SpecialOperation specialOperation, BigDecimal firstValue) throws DivisionByZeroException, NegativeValueForSqrtException {
       BigDecimal answer;
       if (specialOperation == SQR) {
          answer = sqr(firstValue);
@@ -259,7 +260,7 @@ public class Calculator {
       } else if (specialOperation == ONE_DIVIDED) {
          answer = oneDivided(firstValue);
       } else {
-         throw new WrongOperationException();
+         throw new IllegalArgumentException("wrong operation " + specialOperation);
       }
 
       return answer;
